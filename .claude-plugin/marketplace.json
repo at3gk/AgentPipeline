@@ -1,0 +1,14 @@
+{
+  "name": "agent-pipeline-marketplace",
+  "owner": {
+    "name": "AgentPipeline"
+  },
+  "description": "Reusable multi-agent development pipeline for Claude Code.",
+  "plugins": [
+    {
+      "name": "agent-pipeline",
+      "source": "./plugins/agent-pipeline",
+      "description": "Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline with a learning stage."
+    }
+  ]
+}
