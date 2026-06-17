@@ -1,0 +1,16 @@
+{
+  "//": "Copy the SessionStart hook below into your PROJECT's .claude/settings.json (merge with any existing settings). It runs in every Claude Code session — local and cloud — so a fresh cloud container has your test tooling installed before the pipeline runs. Trim the command to match your stack; keep it fast and idempotent. Use $CLAUDE_CODE_REMOTE=true inside the command if you want to install deps only in the cloud.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f requirements.txt ]; then pip install -r requirements.txt; fi; if [ -f pyproject.toml ]; then pip install -e '.[dev]' 2>/dev/null || pip install -e . 2>/dev/null; fi; if [ -f package.json ]; then npm install; fi; true"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -38,7 +38,13 @@ reasoning quality matters most.
   the Coder and retries (up to 2 rounds). If it still can't ship, the Explainer
   writes up exactly *why it's stuck* and the smallest next step. Either way it
   pushes the branch and leaves a committed morning report — **no PR, no merge**.
-  With no argument it pulls the next unchecked item from a `FEATURES.md` backlog.
+  With no argument it pulls the next unchecked item from the `## Ready to build`
+  section of a `FEATURES.md` backlog.
+- **`/suggest-features [focus]`** — have Opus (the **scout** agent) review the
+  codebase and its knowledge graph and propose small, evidence-backed candidates
+  into the `## Proposed` section of `FEATURES.md`. It only proposes — you promote
+  the ones you want into `## Ready to build`. Great as a grooming pass before a
+  night of `/ship-overnight` runs.
 - **`/explain <file | module | feature>`** — run just the Explainer on demand to
   learn any part of the codebase. With no argument, it explains your most recent
   changes.
@@ -46,11 +52,13 @@ reasoning quality matters most.
 ```
 /ship add rate limiting to the login endpoint, max 5 attempts/min/IP, return 429
 /ship-overnight build a CSV export endpoint for the reports table
+/suggest-features focus on test-coverage gaps in the auth module
 /explain src/auth/session.py
 ```
 
 When installed as a plugin the commands are namespaced: `/agent-pipeline:ship`,
-`/agent-pipeline:ship-overnight`, `/agent-pipeline:explain`.
+`/agent-pipeline:ship-overnight`, `/agent-pipeline:suggest-features`,
+`/agent-pipeline:explain`.
 
 ## Install (recommended: as a plugin)
 
@@ -146,37 +154,22 @@ environment that fires on a trigger, with **no machine of yours involved**:
 1. Create a cloud environment for your repo. Set the network policy to **Trusted**
    (or higher) so test dependencies — and Understand-Anything — can install.
 2. Add a **SessionStart hook** to your project's `.claude/settings.json` so the
-   fresh container has your test tooling. Adapt the command to your stack:
-
-   ```json
-   {
-     "hooks": {
-       "SessionStart": [
-         {
-           "matcher": "startup|resume",
-           "hooks": [
-             { "type": "command", "command": "pip install -r requirements.txt || true" }
-           ]
-         }
-       ]
-     }
-   }
-   ```
-
-3. Keep a `FEATURES.md` backlog at the repo root:
-
-   ```markdown
-   # Backlog
-   - [ ] Add a CSV export endpoint for the reports table
-   - [ ] Cache the dashboard summary query for 60s
-   - [ ] Add pagination to the audit log API
-   ```
-
+   fresh container has your test tooling — copy [`examples/claude-settings.json`](examples/claude-settings.json)
+   and trim its command to your stack.
+3. Copy [`examples/FEATURES.md`](examples/FEATURES.md) to your repo root and fill in
+   the `## Ready to build` section. (Or run `/suggest-features` and promote the
+   candidates it proposes.)
 4. At [claude.ai/code/routines](https://claude.ai/code/routines), create a Routine
    on a **Schedule** trigger (e.g. daily at 2am) with the prompt `/ship-overnight`
-   (no argument). Each night it grabs the next unchecked backlog item, ships it to a
-   `claude/overnight-*` branch, checks the box, and pushes — ready for your review
-   with coffee. (Routines can also be triggered by GitHub events or an API call.)
+   (no argument). Each night it grabs the next item from `## Ready to build`, ships
+   it to a `claude/overnight-*` branch, checks the box, and pushes — ready for your
+   review with coffee. (Routines can also be triggered by GitHub events or an API call.)
+
+**Optional: let it refill its own backlog.** Add a second Routine on a slower
+schedule (say, weekly) running `/suggest-features`. It proposes candidates into
+`## Proposed` — it never ships them — so you skim the list and promote what you
+want. This keeps "decide what to build" a human-gated step while the nightly
+shipper handles "build it."
 
 > Cloud containers are ephemeral and clone the repo fresh, so only committed
 > files travel — which is why the morning report is committed to `reports/` rather
@@ -195,7 +188,8 @@ system), run the install script from this repo:
 
 It copies the agents into `<repo>/.claude/agents/`, the commands into
 `<repo>/.claude/commands/`, and adds `.pipeline/` to the repo's `.gitignore`.
-Commands are then `/ship`, `/ship-overnight`, and `/explain` (no namespace).
+Commands are then `/ship`, `/ship-overnight`, `/suggest-features`, and
+`/explain` (no namespace).
 
 ## Tips
 
@@ -214,7 +208,10 @@ Commands are then `/ship`, `/ship-overnight`, and `/explain` (no namespace).
 .claude-plugin/marketplace.json     # marketplace catalog
 plugins/agent-pipeline/
   .claude-plugin/plugin.json        # plugin manifest (version lives here)
-  agents/                           # planner, coder, tester, reviewer, explainer
-  commands/                         # ship, ship-overnight, explain
+  agents/                           # planner, coder, tester, reviewer, explainer, scout
+  commands/                         # ship, ship-overnight, suggest-features, explain
+examples/
+  FEATURES.md                       # starter backlog (copy to your repo root)
+  claude-settings.json              # SessionStart hook for cloud runs
 install.sh                          # vendor the files into any repo (option B)
 ```

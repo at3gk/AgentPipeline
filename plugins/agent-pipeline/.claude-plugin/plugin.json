@@ -1,7 +1,7 @@
 {
   "name": "agent-pipeline",
   "description": "A multi-agent feature pipeline for Claude Code: Map -> Plan -> Code -> Test -> Review -> Explain. Ships features locally or in scheduled cloud sessions, with tests, an auto-fix loop, a review verdict, and a learning walkthrough, all handed off through a shared .pipeline/ folder.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": {
     "name": "AgentPipeline"
   },

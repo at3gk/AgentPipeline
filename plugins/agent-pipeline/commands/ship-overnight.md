@@ -10,7 +10,7 @@ You are running unattended (overnight, or in a scheduled cloud session). Make re
 
 1. **Determine the feature.**
    - If `$ARGUMENTS` is non-empty, that is the feature.
-   - If it is empty, read `FEATURES.md` at the repo root and take the **first unchecked item** (`- [ ] ...`). That is the feature. If there is no backlog file or no unchecked item, write a short note saying there was nothing to do and stop.
+   - If it is empty, read `FEATURES.md` at the repo root and take the first unchecked item (`- [ ] ...`) under the `## Ready to build` heading (if that heading exists; otherwise the first unchecked item anywhere). That is the feature. **Never** pull from a `## Proposed` section — those are ungroomed candidates, not approved work. If there is no backlog file or no unchecked ready item, write a short note saying there was nothing to do and stop.
 2. **Pre-flight.** Run `git status`. If the working tree is **not clean**, stop and report it — do not mix unrelated uncommitted changes into an autonomous run. (In a fresh cloud session the tree is always clean.) Never run on `main`/`master` as the working branch; you will create your own branch next.
 3. **Create the branch.** Make and switch to `claude/overnight-<slug>-<date>`, where `<slug>` is a short kebab-case summary of the feature and `<date>` is `YYYYMMDD`. The `claude/` prefix keeps it pushable under default cloud branch-push policies. Branch from the current HEAD.
 4. **Clean handoffs.** Delete any files in `.pipeline/` and recreate the empty directory.
