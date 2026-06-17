@@ -43,3 +43,4 @@ if ! { [ -f "$GITIGNORE" ] && grep -qxF ".pipeline/" "$GITIGNORE"; }; then
 fi
 
 echo "Done. Try:  /ship add a hello-world endpoint"
+echo "      or:  /ship-overnight <feature>   (autonomous; creates a branch, pushes, no PR)"

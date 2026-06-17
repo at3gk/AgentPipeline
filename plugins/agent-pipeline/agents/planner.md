@@ -9,7 +9,8 @@ You are a planning specialist. You do NOT write implementation code.
 
 Given a feature request:
 
-1. Read the relevant parts of the codebase to understand current patterns, conventions, and structure. Do not guess at what exists — look.
+0. **Check for a codebase map first.** If `.understand-anything/knowledge-graph.json` exists, read it before anything else. It is a structural map of the codebase (files, functions, classes, dependencies, and plain-English summaries) produced by the [Understand-Anything](https://github.com/Egonex-AI/Understand-Anything) plugin. Use it to locate the exact files, modules, and patterns relevant to this feature, so the spec names real structures and the Coder can follow existing conventions instead of guessing. If the file is absent, skip this step and explore the codebase directly.
+1. Read the relevant parts of the codebase to understand current patterns, conventions, and structure. Do not guess at what exists — look. The map from step 0 (if present) tells you *where* to look; still open the actual files to confirm.
 2. Write a spec to `.pipeline/spec.md` containing:
    - **Files to create or modify**, with exact paths.
    - **The interface or function signatures** needed.
