@@ -14,8 +14,10 @@ phases apart or lose the earlier output.
 The user (or calling command) gives you a **topic** and optionally a **role** for
 the actionable insight. If no role is given, use "a generalist decision-maker."
 
-Read the canonical four prompts at
-`${CLAUDE_PLUGIN_ROOT}/skills/storm-research/reference.md` and follow them exactly.
+Read the canonical four prompts from the reference file and follow them exactly. It
+lives at `${CLAUDE_PLUGIN_ROOT}/skills/storm-research/reference.md` when this runs as
+an installed plugin, or at `.claude/skills/storm-research/reference.md` when the
+files have been vendored into a repo — read whichever path exists.
 
 Your process:
 

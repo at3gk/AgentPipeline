@@ -10,10 +10,13 @@ First parse the argument:
   the actionable insight. Otherwise use "a generalist decision-maker."
 - If no topic was given at all, ask the user for one and stop.
 
-Read the canonical prompts at `${CLAUDE_PLUGIN_ROOT}/skills/storm-research/reference.md`
-and follow all four phases **in this one context, in order** — each phase reads the
-output of the previous one, so do not restart or discard earlier output between
-phases. That continuity is the method.
+Read the canonical STORM prompts from the reference file, then follow all four
+phases **in this one context, in order** — each phase reads the output of the
+previous one, so do not restart or discard earlier output between phases. That
+continuity is the method. The reference file lives at
+`${CLAUDE_PLUGIN_ROOT}/skills/storm-research/reference.md` when this runs as an
+installed plugin, or at `.claude/skills/storm-research/reference.md` when the files
+have been vendored into a repo — read whichever path exists.
 
 1. **Ground it (if it helps).** If WebSearch / WebFetch are available and the topic
    is empirical, current, or contested, gather 3–8 credible sources first and have

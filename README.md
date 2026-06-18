@@ -149,9 +149,20 @@ The pipeline never merges. You are the final gate.
 This is the real fix for "I don't want to leave my laptop running." With
 [Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web),
 the pipeline runs in an Anthropic-managed cloud container — your machine can be
-closed — and results come back as a pushed branch. Because everything the
-pipeline needs (agents, commands) lives in this committed plugin, it loads in
-cloud sessions exactly as it does locally.
+closed — and results come back as a pushed branch.
+
+> **Cloud sessions don't have the interactive plugin manager.** `/plugin
+> marketplace add` and `/plugin install` open a terminal picker that doesn't exist
+> on the web, and a fresh container never carries your personal `~/.claude/`. So
+> the marketplace install you did locally is *not* present in a cloud session.
+> What loads in the cloud is whatever the repo **commits** under `.claude/`. Two
+> ways to get the pipeline there: **(a) vendor it into the repo** — run this repo's
+> [`install.sh`](#install--option-b-vendor-the-files-into-a-repo), which copies the
+> agents/commands into `.claude/agents/` and `.claude/commands/` (auto-discovered,
+> zero install); or **(b) declare the plugin in committed settings** — add
+> `extraKnownMarketplaces` + `enabledPlugins` to the repo's `.claude/settings.json`,
+> which the cloud fetches at startup *if the network policy allows reaching the
+> marketplace*. Vendoring (a) has no network dependency and is the most reliable.
 
 **One-off cloud run:** at [claude.ai/code](https://claude.ai/code), connect GitHub,
 create a cloud environment for your repo, and submit `/ship-overnight <feature>`.
@@ -183,7 +194,10 @@ shipper handles "build it."
 > Cloud containers are ephemeral and clone the repo fresh, so only committed
 > files travel — which is why the morning report is committed to `reports/` rather
 > than left in the gitignored `.pipeline/` folder. Personal `~/.claude/` config does
-> not carry to the cloud; this plugin works because it's installed from the marketplace.
+> not carry to the cloud, and the interactive `/plugin install` you ran locally is
+> not present either — so the pipeline reaches the cloud only because it's **committed
+> under `.claude/`** (vendored via `install.sh`) or **declared in committed
+> `.claude/settings.json`**, per the note above.
 
 ## Install — option B: vendor the files into a repo
 
@@ -264,6 +278,24 @@ second plugin:
 ```
 
 Try it locally without installing: `claude --plugin-dir ./plugins/storm-research`.
+
+**For Claude Code on the web (cloud), the plugin install above does nothing** — the
+interactive plugin manager isn't available there and a fresh container doesn't carry
+your local install (see the [cloud note](#running-it-in-the-cloud-no-computer-left-on)).
+Instead **vendor the files into the repo** so they ride along in the clone and
+auto-load with no install step:
+
+```bash
+/path/to/AgentPipeline/install.sh ~/code/your-repo
+```
+
+That copies the skill to `.claude/skills/storm-research/`, the command to
+`.claude/commands/storm.md`, and the agent to `.claude/agents/storm-researcher.md`.
+The `storm` command and `storm-researcher` agent read the prompts from
+`${CLAUDE_PLUGIN_ROOT}/skills/storm-research/reference.md` when installed as a plugin
+and from `.claude/skills/storm-research/reference.md` when vendored, so the same
+files work both ways. Commit `.claude/`, push, and `/storm` is live in every cloud
+session of that repo.
 
 > `research/<slug>.md` is a normal committed file, which is what carries the
 > briefing out of an ephemeral cloud session — commit and push it to keep it.
