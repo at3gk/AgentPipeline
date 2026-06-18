@@ -1,6 +1,15 @@
 # AgentPipeline
 
-A reusable multi-agent development pipeline for [Claude Code](https://code.claude.com).
+A Claude Code plugin marketplace with two reusable plugins for
+[Claude Code](https://code.claude.com):
+
+- **[`agent-pipeline`](#the-pipeline)** — a multi-agent *development* pipeline
+  (Plan → Code → Test → Review → Explain).
+- **[`storm-research`](#storm-research-plugin)** — the Stanford STORM *research*
+  method: turn any topic into a sourced, reliability-scored briefing.
+
+Both install from the same marketplace and work in every repo, locally and in the
+cloud. The development pipeline is documented first; the research plugin follows.
 
 You type one command and a chain of specialist subagents takes a feature from
 request to reviewed, tested, and explained code — each one staying in a clean,
@@ -202,14 +211,78 @@ Commands are then `/ship`, `/ship-overnight`, `/suggest-features`, and
 - **Parallel features** want separate git worktrees so agents don't edit the same
   files.
 
+## STORM research plugin
+
+The second plugin in this marketplace, **`storm-research`**, is a *research* tool,
+not a coding one. It runs the [Stanford STORM method](https://storm.genie.stanford.edu)
+(Stanford OVAL Lab, NAACL 2024) inside Claude: instead of the one-prompt majority
+view, it simulates **five expert perspectives** on your topic — the practitioner,
+the academic, the skeptic, the economist, and the historian — then makes the
+disagreements between them do the work. In Stanford's peer-reviewed testing this
+produced articles ~25% more organized and ~10% broader than single-prompt research.
+
+It runs four phases in one continuous context (each reads the last):
+
+1. **Multi-Perspective Scan** — all five expert reads of the topic.
+2. **Contradiction Map** — where they clash, what they *all* agree on (likely
+   true), and what *none* of them addressed (the field's blind spot).
+3. **Synthesis** — a 60-second CEO summary, five findings ranked by reliability, a
+   hidden cross-perspective connection, a specific action for your role, and the
+   frontier question.
+4. **Peer Review** — the briefing grades itself: confidence scores, weakest link,
+   bias check, a possible missing angle, and a letter grade. This is STORM's
+   built-in guard against its own known weakness (source bias / fact misassociation).
+
+When web tools are available it grounds the personas in real sources and attaches a
+**Sources** list; otherwise it runs from model knowledge and says so plainly.
+
+### Use it
+
+- **Skill (automatic).** Just ask Claude to *research a topic properly* — "research
+  the state of solid-state batteries", "I need to understand X before a decision" —
+  and the `storm-research` skill kicks in. Great before writing, a business or
+  investment decision, an interview, a negotiation, or a presentation.
+- **`/storm <topic> [as <role>]`** — the explicit driver. Runs all four phases and
+  **saves the briefing to `research/<slug>.md`**, then shows you the summary,
+  ranked findings, action, and grade. The role tailors the actionable insight:
+  `/storm the creator economy in 2026 as a YouTube channel owner`.
+- **`storm-researcher` agent** — runs the whole method in an isolated context and
+  writes the file. Use it to keep your main thread clean or to research several
+  topics in parallel.
+
+When installed as a plugin the command is namespaced `/storm-research:storm`.
+
+### Install
+
+Same marketplace as the pipeline — if you already added it, just install the
+second plugin:
+
+```bash
+/plugin marketplace add at3gk/agentpipeline
+/plugin install storm-research@agent-pipeline-marketplace
+/reload-plugins
+```
+
+Try it locally without installing: `claude --plugin-dir ./plugins/storm-research`.
+
+> `research/<slug>.md` is a normal committed file, which is what carries the
+> briefing out of an ephemeral cloud session — commit and push it to keep it.
+
 ## Repository layout
 
 ```
-.claude-plugin/marketplace.json     # marketplace catalog
+.claude-plugin/marketplace.json     # marketplace catalog (both plugins)
 plugins/agent-pipeline/
   .claude-plugin/plugin.json        # plugin manifest (version lives here)
   agents/                           # planner, coder, tester, reviewer, explainer, scout
   commands/                         # ship, ship-overnight, suggest-features, explain
+plugins/storm-research/
+  .claude-plugin/plugin.json        # plugin manifest
+  skills/storm-research/
+    SKILL.md                        # auto-invokable method (runs inline)
+    reference.md                    # the four verbatim STORM prompts (source of truth)
+  commands/                         # storm  (saves research/<slug>.md)
+  agents/                           # storm-researcher (isolated full-method run)
 examples/
   FEATURES.md                       # starter backlog (copy to your repo root)
   claude-settings.json              # SessionStart hook for cloud runs
