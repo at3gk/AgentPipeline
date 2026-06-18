@@ -1,0 +1,10 @@
+{
+  "name": "storm-research",
+  "description": "The Stanford STORM research method as a Claude skill. Turns any topic into a sourced, reliability-scored research briefing by simulating 5 expert perspectives (practitioner, academic, skeptic, economist, historian), mapping where they contradict, synthesizing the findings, then peer-reviewing its own work. Based on STORM (Stanford OVAL Lab, NAACL 2024).",
+  "version": "1.0.0",
+  "author": {
+    "name": "AgentPipeline"
+  },
+  "homepage": "https://github.com/at3gk/agentpipeline",
+  "keywords": ["research", "storm", "stanford", "multi-perspective", "synthesis", "briefing", "due-diligence"]
+}

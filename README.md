@@ -1,6 +1,15 @@
 # AgentPipeline
 
-A reusable multi-agent development pipeline for [Claude Code](https://code.claude.com).
+A Claude Code plugin marketplace with two reusable plugins for
+[Claude Code](https://code.claude.com):
+
+- **[`agent-pipeline`](#the-pipeline)** — a multi-agent *development* pipeline
+  (Plan → Code → Test → Review → Explain).
+- **[`storm-research`](#storm-research-plugin)** — the Stanford STORM *research*
+  method: turn any topic into a sourced, reliability-scored briefing.
+
+Both install from the same marketplace and work in every repo, locally and in the
+cloud. The development pipeline is documented first; the research plugin follows.
 
 You type one command and a chain of specialist subagents takes a feature from
 request to reviewed, tested, and explained code — each one staying in a clean,
@@ -140,9 +149,20 @@ The pipeline never merges. You are the final gate.
 This is the real fix for "I don't want to leave my laptop running." With
 [Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web),
 the pipeline runs in an Anthropic-managed cloud container — your machine can be
-closed — and results come back as a pushed branch. Because everything the
-pipeline needs (agents, commands) lives in this committed plugin, it loads in
-cloud sessions exactly as it does locally.
+closed — and results come back as a pushed branch.
+
+> **Cloud sessions don't have the interactive plugin manager.** `/plugin
+> marketplace add` and `/plugin install` open a terminal picker that doesn't exist
+> on the web, and a fresh container never carries your personal `~/.claude/`. So
+> the marketplace install you did locally is *not* present in a cloud session.
+> What loads in the cloud is whatever the repo **commits** under `.claude/`. Two
+> ways to get the pipeline there: **(a) vendor it into the repo** — run this repo's
+> [`install.sh`](#install--option-b-vendor-the-files-into-a-repo), which copies the
+> agents/commands into `.claude/agents/` and `.claude/commands/` (auto-discovered,
+> zero install); or **(b) declare the plugin in committed settings** — add
+> `extraKnownMarketplaces` + `enabledPlugins` to the repo's `.claude/settings.json`,
+> which the cloud fetches at startup *if the network policy allows reaching the
+> marketplace*. Vendoring (a) has no network dependency and is the most reliable.
 
 **One-off cloud run:** at [claude.ai/code](https://claude.ai/code), connect GitHub,
 create a cloud environment for your repo, and submit `/ship-overnight <feature>`.
@@ -174,7 +194,10 @@ shipper handles "build it."
 > Cloud containers are ephemeral and clone the repo fresh, so only committed
 > files travel — which is why the morning report is committed to `reports/` rather
 > than left in the gitignored `.pipeline/` folder. Personal `~/.claude/` config does
-> not carry to the cloud; this plugin works because it's installed from the marketplace.
+> not carry to the cloud, and the interactive `/plugin install` you ran locally is
+> not present either — so the pipeline reaches the cloud only because it's **committed
+> under `.claude/`** (vendored via `install.sh`) or **declared in committed
+> `.claude/settings.json`**, per the note above.
 
 ## Install — option B: vendor the files into a repo
 
@@ -202,14 +225,96 @@ Commands are then `/ship`, `/ship-overnight`, `/suggest-features`, and
 - **Parallel features** want separate git worktrees so agents don't edit the same
   files.
 
+## STORM research plugin
+
+The second plugin in this marketplace, **`storm-research`**, is a *research* tool,
+not a coding one. It runs the [Stanford STORM method](https://storm.genie.stanford.edu)
+(Stanford OVAL Lab, NAACL 2024) inside Claude: instead of the one-prompt majority
+view, it simulates **five expert perspectives** on your topic — the practitioner,
+the academic, the skeptic, the economist, and the historian — then makes the
+disagreements between them do the work. In Stanford's peer-reviewed testing this
+produced articles ~25% more organized and ~10% broader than single-prompt research.
+
+It runs four phases in one continuous context (each reads the last):
+
+1. **Multi-Perspective Scan** — all five expert reads of the topic.
+2. **Contradiction Map** — where they clash, what they *all* agree on (likely
+   true), and what *none* of them addressed (the field's blind spot).
+3. **Synthesis** — a 60-second CEO summary, five findings ranked by reliability, a
+   hidden cross-perspective connection, a specific action for your role, and the
+   frontier question.
+4. **Peer Review** — the briefing grades itself: confidence scores, weakest link,
+   bias check, a possible missing angle, and a letter grade. This is STORM's
+   built-in guard against its own known weakness (source bias / fact misassociation).
+
+When web tools are available it grounds the personas in real sources and attaches a
+**Sources** list; otherwise it runs from model knowledge and says so plainly.
+
+### Use it
+
+- **Skill (automatic).** Just ask Claude to *research a topic properly* — "research
+  the state of solid-state batteries", "I need to understand X before a decision" —
+  and the `storm-research` skill kicks in. Great before writing, a business or
+  investment decision, an interview, a negotiation, or a presentation.
+- **`/storm <topic> [as <role>]`** — the explicit driver. Runs all four phases and
+  **saves the briefing to `research/<slug>.md`**, then shows you the summary,
+  ranked findings, action, and grade. The role tailors the actionable insight:
+  `/storm the creator economy in 2026 as a YouTube channel owner`.
+- **`storm-researcher` agent** — runs the whole method in an isolated context and
+  writes the file. Use it to keep your main thread clean or to research several
+  topics in parallel.
+
+When installed as a plugin the command is namespaced `/storm-research:storm`.
+
+### Install
+
+Same marketplace as the pipeline — if you already added it, just install the
+second plugin:
+
+```bash
+/plugin marketplace add at3gk/agentpipeline
+/plugin install storm-research@agent-pipeline-marketplace
+/reload-plugins
+```
+
+Try it locally without installing: `claude --plugin-dir ./plugins/storm-research`.
+
+**For Claude Code on the web (cloud), the plugin install above does nothing** — the
+interactive plugin manager isn't available there and a fresh container doesn't carry
+your local install (see the [cloud note](#running-it-in-the-cloud-no-computer-left-on)).
+Instead **vendor the files into the repo** so they ride along in the clone and
+auto-load with no install step:
+
+```bash
+/path/to/AgentPipeline/install.sh ~/code/your-repo
+```
+
+That copies the skill to `.claude/skills/storm-research/`, the command to
+`.claude/commands/storm.md`, and the agent to `.claude/agents/storm-researcher.md`.
+The `storm` command and `storm-researcher` agent read the prompts from
+`${CLAUDE_PLUGIN_ROOT}/skills/storm-research/reference.md` when installed as a plugin
+and from `.claude/skills/storm-research/reference.md` when vendored, so the same
+files work both ways. Commit `.claude/`, push, and `/storm` is live in every cloud
+session of that repo.
+
+> `research/<slug>.md` is a normal committed file, which is what carries the
+> briefing out of an ephemeral cloud session — commit and push it to keep it.
+
 ## Repository layout
 
 ```
-.claude-plugin/marketplace.json     # marketplace catalog
+.claude-plugin/marketplace.json     # marketplace catalog (both plugins)
 plugins/agent-pipeline/
   .claude-plugin/plugin.json        # plugin manifest (version lives here)
   agents/                           # planner, coder, tester, reviewer, explainer, scout
   commands/                         # ship, ship-overnight, suggest-features, explain
+plugins/storm-research/
+  .claude-plugin/plugin.json        # plugin manifest
+  skills/storm-research/
+    SKILL.md                        # auto-invokable method (runs inline)
+    reference.md                    # the four verbatim STORM prompts (source of truth)
+  commands/                         # storm  (saves research/<slug>.md)
+  agents/                           # storm-researcher (isolated full-method run)
 examples/
   FEATURES.md                       # starter backlog (copy to your repo root)
   claude-settings.json              # SessionStart hook for cloud runs

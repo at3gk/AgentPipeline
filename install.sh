@@ -1,41 +1,50 @@
 #!/usr/bin/env bash
 #
-# install.sh - Vendor the agent-pipeline agents and commands into a target repo.
+# install.sh - Vendor the marketplace plugins into a target repo.
 #
-# Use this if you would rather copy the files directly into a project than
-# install the Claude Code plugin. For the plugin route, see the README.
+# Copies the agent-pipeline and storm-research agents, commands, and skills
+# directly into a project, so you can use them without the Claude Code plugin
+# system. For the plugin route (recommended), see the README.
 #
 # Usage:
 #   ./install.sh [TARGET_DIR]
 #
-# TARGET_DIR defaults to the current directory. The script copies the agents
-# and commands into TARGET_DIR/.claude/ and makes sure .pipeline/ is ignored
-# by git.
+# TARGET_DIR defaults to the current directory. The script copies the files
+# into TARGET_DIR/.claude/ and makes sure .pipeline/ is ignored by git.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PLUGIN_DIR="$SCRIPT_DIR/plugins/agent-pipeline"
+PLUGINS_DIR="$SCRIPT_DIR/plugins"
 
 TARGET_DIR="${1:-$(pwd)}"
 TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 
-if [ ! -d "$PLUGIN_DIR/agents" ] || [ ! -d "$PLUGIN_DIR/commands" ]; then
-  echo "error: could not find plugin files at $PLUGIN_DIR" >&2
+if [ ! -d "$PLUGINS_DIR/agent-pipeline" ]; then
+  echo "error: could not find plugins at $PLUGINS_DIR" >&2
   exit 1
 fi
 
-echo "Installing agent-pipeline into: $TARGET_DIR"
+echo "Installing plugins into: $TARGET_DIR"
 
-mkdir -p "$TARGET_DIR/.claude/agents" "$TARGET_DIR/.claude/commands"
+mkdir -p "$TARGET_DIR/.claude/agents" "$TARGET_DIR/.claude/commands" "$TARGET_DIR/.claude/skills"
 
-cp "$PLUGIN_DIR"/agents/*.md "$TARGET_DIR/.claude/agents/"
-cp "$PLUGIN_DIR"/commands/*.md "$TARGET_DIR/.claude/commands/"
+# Copy every plugin's agents, commands, and skills (each is optional per plugin).
+for PLUGIN_DIR in "$PLUGINS_DIR"/*/; do
+  name="$(basename "$PLUGIN_DIR")"
+  [ -d "$PLUGIN_DIR/agents" ]   && cp "$PLUGIN_DIR"agents/*.md   "$TARGET_DIR/.claude/agents/"   2>/dev/null || true
+  [ -d "$PLUGIN_DIR/commands" ] && cp "$PLUGIN_DIR"commands/*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || true
+  if [ -d "$PLUGIN_DIR/skills" ]; then
+    cp -R "$PLUGIN_DIR"skills/. "$TARGET_DIR/.claude/skills/"
+  fi
+  echo "  vendored $name"
+done
 
-echo "  copied agents   -> .claude/agents/"
-echo "  copied commands -> .claude/commands/"
+echo "  agents   -> .claude/agents/"
+echo "  commands -> .claude/commands/"
+echo "  skills   -> .claude/skills/"
 
-# Keep the handoff folder out of version control.
+# Keep the pipeline handoff folder out of version control.
 GITIGNORE="$TARGET_DIR/.gitignore"
 if ! { [ -f "$GITIGNORE" ] && grep -qxF ".pipeline/" "$GITIGNORE"; }; then
   printf '\n# Agent pipeline handoff folder\n.pipeline/\n' >> "$GITIGNORE"
@@ -43,4 +52,5 @@ if ! { [ -f "$GITIGNORE" ] && grep -qxF ".pipeline/" "$GITIGNORE"; }; then
 fi
 
 echo "Done. Try:  /ship add a hello-world endpoint"
-echo "      or:  /ship-overnight <feature>   (autonomous; creates a branch, pushes, no PR)"
+echo "      or:  /storm <topic>            (STORM research briefing -> research/<slug>.md)"
+echo "      or:  /ship-overnight <feature> (autonomous; creates a branch, pushes, no PR)"
