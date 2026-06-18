@@ -299,8 +299,20 @@ When web tools are available it grounds the personas in real sources and attache
 - **`storm-researcher` agent** — runs the whole method in an isolated context and
   writes the file. Use it to keep your main thread clean or to research several
   topics in parallel.
+- **`/research-feature <decision> [as <role>]`** — **repo-grounded** STORM, the
+  bridge to the `/ship` pipeline. Runs the four phases grounded in *your* codebase
+  (`REPO_CONTRACT.md` + a scoped scan + the knowledge graph), so the recommendation
+  names the real files and patterns to reuse and honors your dependency policy —
+  not a textbook verdict. It saves to `research/<slug>.md`, and the next `/ship` run
+  picks it up: the Planner reads the briefing and grounds the spec in it. Use it for
+  a feature that hinges on an external/domain choice the codebase can't settle (a
+  security scheme, an OAuth flow, an algorithm, a third-party service, a compliance
+  rule). It's an opt-in *precursor* to `/ship`, not a pipeline stage — and if the
+  Planner hits such a decision with no briefing present, it will recommend running
+  this first. `/research-feature the rate-limiting approach for the login endpoint`
 
-When installed as a plugin the command is namespaced `/storm-research:storm`.
+When installed as a plugin the commands are namespaced `/storm-research:storm` and
+`/storm-research:research-feature`.
 
 ### Install
 
@@ -349,7 +361,7 @@ plugins/storm-research/
   skills/storm-research/
     SKILL.md                        # auto-invokable method (runs inline)
     reference.md                    # the four verbatim STORM prompts (source of truth)
-  commands/                         # storm  (saves research/<slug>.md)
+  commands/                         # storm, research-feature  (save research/<slug>.md)
   agents/                           # storm-researcher (isolated full-method run)
 examples/
   FEATURES.md                       # starter backlog (copy to your repo root)

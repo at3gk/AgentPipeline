@@ -13,7 +13,7 @@
     {
       "name": "storm-research",
       "source": "./plugins/storm-research",
-      "description": "Stanford STORM research method: 5 expert perspectives -> contradiction map -> synthesis -> peer review. Turns any topic into a sourced, reliability-scored briefing."
+      "description": "Stanford STORM research method: 5 expert perspectives -> contradiction map -> synthesis -> peer review. Turns any topic into a sourced, reliability-scored briefing. Includes /research-feature, a repo-grounded variant that feeds the agent-pipeline /ship workflow."
     }
   ]
 }

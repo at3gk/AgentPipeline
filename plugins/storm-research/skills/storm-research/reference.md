@@ -133,3 +133,38 @@ close that gap:
   internal knowledge, but say so plainly at the top of the briefing and let the
   Phase 4 confidence scores carry the uncertainty. Never present an unsourced
   claim as if it were verified.
+
+## Optional codebase grounding (makes it *actionable for one repo*)
+
+When the research is for a decision inside a specific codebase — "rate limiting
+*for this service*", "which OAuth flow *for this app*" — ground it in the repo so
+the recommendation names real files and patterns instead of textbook generalities.
+This is what the `/research-feature` command and the repo-grounded `storm-researcher`
+mode do. Assemble a compact **Codebase constraints** block before Phase 1 from
+whatever is present:
+
+- `REPO_CONTRACT.md` at the repo root — the curated index of canonical patterns,
+  the auth approach, the test setup, and the **package/dependency policy**.
+- A *scoped* Grep/Glob scan of the feature-relevant area (the existing code this
+  decision touches) — not the whole repo.
+- `.understand-anything/knowledge-graph.json` if present.
+
+Then thread that block through the method **without** narrowing the research:
+
+- **Phase 1 framing:** prepend the Codebase constraints as *feasibility* context.
+  The five personas still research the topic **broadly** (surface options the repo
+  doesn't already use); the constraints tell them what would have to be true to
+  adopt an option here. Do not let the constraints collapse the perspectives into
+  a description of the existing stack — that throws away STORM's edge.
+- **Role:** set `{{ROLE}}` to *"an engineer implementing this in `<repo>`"*.
+- **Phase 2 blind spot:** let the codebase context inform what *none* of the
+  perspectives addressed (e.g. an option that's a poor fit for this stack).
+- **Phase 3 actionable insight:** make it **repo-specific** — name the files and
+  patterns to reuse, cite the relevant `REPO_CONTRACT.md` entries, and honor the
+  package policy: if the recommended option needs a new dependency, say so and
+  justify why the existing deps don't cover it (this mirrors the Coder's stop rule,
+  so the downstream `/ship` planner inherits a clean decision).
+
+Record which repo inputs you used in the briefing's header note. Codebase and web
+grounding compose — use both when both are available (external evidence + internal
+constraints).

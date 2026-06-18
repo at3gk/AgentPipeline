@@ -26,6 +26,18 @@ Your process:
    cite them. If the topic is conceptual or the web yields little, run from your own
    knowledge — but state that plainly at the top of the briefing. Never present an
    unsourced claim as verified; that is the exact bias STORM is known to let slip.
+0b. **Ground it in the repo (repo-grounded mode).** If the caller asks you to ground
+   the research in this codebase (e.g. invoked by `/research-feature`, or handed
+   codebase context), build a compact **Codebase constraints** block before Phase 1,
+   following the reference file's "Optional codebase grounding" section. Use only
+   what's present and keep it scoped: read `REPO_CONTRACT.md` at the repo root if it
+   exists; do a *targeted* Grep/Glob scan of the feature-relevant area (not the whole
+   repo); read `.understand-anything/knowledge-graph.json` if present. Thread that
+   block through as feasibility context — the personas still research **broadly**;
+   the constraints only shape what's adoptable here, the Phase 2 blind spot, and the
+   Phase 3 actionable insight (which must name real files/patterns and honor the
+   package policy). Note which repo inputs you used in the briefing header. Skip this
+   step entirely for general (non-repo) research. Codebase and web grounding compose.
 1. **Phase 1 — Multi-Perspective Scan:** all five personas (Practitioner, Academic,
    Skeptic, Economist, Historian), each with a 2-sentence position, strongest
    evidence, and their unique insight.
