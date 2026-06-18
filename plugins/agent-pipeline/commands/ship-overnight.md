@@ -17,7 +17,7 @@ You are running unattended (overnight, or in a scheduled cloud session). Make re
 
 ## 1. Map (optional precursor)
 
-If `.understand-anything/knowledge-graph.json` exists, leave it for the Planner. If it is missing or stale and the [Understand-Anything](https://github.com/Egonex-AI/Understand-Anything) plugin is installed, run `/understand` to build a fresh codebase map first. If that plugin is not installed, skip silently.
+If `.understand-anything/knowledge-graph.json` exists, leave it for the Planner. If it is missing or stale and the [Understand-Anything](https://github.com/Egonex-AI/Understand-Anything) plugin is installed, run `/understand` to build a fresh codebase map first. If that plugin is not installed, skip silently. If `REPO_CONTRACT.md` exists at the repo root, the Planner will read it to ground the spec in canonical patterns; do not regenerate it on an unattended run (it is meant to be committed and reviewed).
 
 ## 2. Plan
 
@@ -30,9 +30,12 @@ Delegate to the **planner** subagent with the feature. Wait for `.pipeline/spec.
 Run this loop. Let `ROUND = 0` and `MAX_ROUNDS = 2`.
 
 1. Delegate to the **coder** subagent. On the first pass it implements the spec; on later passes, point it at `.pipeline/review.md` and tell it to address that feedback only. Wait for `.pipeline/changes.md`.
-2. Delegate to the **tester** subagent. Wait for `.pipeline/test-results.md`.
-3. Delegate to the **reviewer** subagent. Wait for `.pipeline/review.md`. Read its **first line**.
-4. Decide:
+2. **Check stop-rule triggers (severity split).** Read the stop-rule triggers the coder flagged in `.pipeline/changes.md`. You are unattended, so you cannot ask me — apply this split instead:
+   - **Hard block** — a new or upgraded **dependency**, a change to a **shared/public interface**, or any touch to **auth or data migrations**. Do not proceed: revert or leave the change unmade, record the trigger, and go straight to step 5, Blocked. Never silently install a dependency or alter auth.
+   - **Soft** — inventing a **new convention** or **skipping a test**. Proceed, but record the choice under the **"Assumptions made (unattended run)"** heading in `.pipeline/spec.md` and call it out in the morning report.
+3. Delegate to the **tester** subagent. Wait for `.pipeline/test-results.md`.
+4. Delegate to the **reviewer** subagent. Wait for `.pipeline/review.md`. Read its **first line**.
+5. Decide:
    - First line is `VERDICT: SHIP` **and** tests passed → checkpoint-commit (see below) and go to step 4, Ship.
    - Otherwise, if `ROUND < MAX_ROUNDS` → checkpoint-commit the attempt, increment `ROUND`, and repeat the loop from step 1, feeding back the failures (test results and/or review feedback).
    - Otherwise (out of rounds, still not shipping) → go to step 5, Blocked.
@@ -55,7 +58,7 @@ Run this loop. Let `ROUND = 0` and `MAX_ROUNDS = 2`.
 
 ## 6. Finish
 
-1. Write the morning report to a **committed** file at `reports/<branch-name>.md` (create `reports/` if needed). `.pipeline/` is gitignored, so this committed report is how the results travel with the branch — essential for cloud runs where I only see the branch. Include: status, the feature, any assumptions made, the review verdict, a short summary of what was built (or where it's stuck), the test outcome, and a one-line pointer to read `.pipeline/explanation.md` for the full walkthrough if running locally. Commit it as part of the final commit.
+1. Write the morning report to a **committed** file at `reports/<branch-name>.md` (create `reports/` if needed). `.pipeline/` is gitignored, so this committed report is how the results travel with the branch — essential for cloud runs where I only see the branch. Include: status, the feature, any **assumptions made**, any **stop-rule triggers** that fired and how they were handled (hard-blocked vs. proceeded-with-assumption), the review verdict, a short summary of what was built (or where it's stuck), the test outcome (acceptance checks verified, plus any skipped checks or known risks from the evidence contract), and a one-line pointer to read `.pipeline/explanation.md` for the full walkthrough if running locally. Commit it as part of the final commit.
 2. **Push** the branch: `git push -u origin <branch-name>`. If the push fails due to a network error, retry up to 4 times with exponential backoff (2s, 4s, 8s, 16s).
 3. **Do not open a pull request. Do not merge.** Leave the branch for my review.
 4. End with a one-paragraph summary: branch name, status, and the headline of the morning report.

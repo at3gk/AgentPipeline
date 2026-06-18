@@ -8,7 +8,7 @@
     {
       "name": "agent-pipeline",
       "source": "./plugins/agent-pipeline",
-      "description": "Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline with a learning stage."
+      "description": "Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline with a learning stage. Contract-driven (repo/task/diff/evidence) with stop rules and a hard review gate."
     },
     {
       "name": "storm-research",

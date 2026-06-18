@@ -51,6 +51,7 @@ if ! { [ -f "$GITIGNORE" ] && grep -qxF ".pipeline/" "$GITIGNORE"; }; then
   echo "  added .pipeline/ to .gitignore"
 fi
 
-echo "Done. Try:  /ship add a hello-world endpoint"
+echo "Done. Try:  /map-repo                 (index canonical patterns -> REPO_CONTRACT.md)"
+echo "      then: /ship add a hello-world endpoint"
 echo "      or:  /storm <topic>            (STORM research briefing -> research/<slug>.md)"
 echo "      or:  /ship-overnight <feature> (autonomous; creates a branch, pushes, no PR)"

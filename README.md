@@ -36,8 +36,43 @@ About 70% of token spend lands on the cheaper Sonnet model (Coder + Tester),
 30% on Opus (Planner, Reviewer, Explainer), which run once per feature where
 reasoning quality matters most.
 
+### The contracts
+
+Each handoff is a **contract**, so the pipeline stays honest instead of just
+producing plausible-looking diffs:
+
+- **Repo contract** — `REPO_CONTRACT.md` (committed). A short, curated index of
+  the codebase's canonical files and patterns: schemas, validators, utils,
+  naming, errors, auth, tests, and package policy. Generate it with `/map-repo`;
+  the Planner reads it every run so specs reuse what exists.
+- **Task contract** — `.pipeline/spec.md`. Before code: the behavior, the
+  **allowed/forbidden files**, the package policy, and concrete **acceptance
+  checks** the run will be judged against.
+- **Diff contract** — `.pipeline/changes.md`. After code: for each changed
+  surface, *why* it changed, what pattern it reused, and what would break if
+  reverted.
+- **Evidence contract** — `.pipeline/test-results.md`. Acceptance checks marked
+  verified or not, plus skipped checks, manual verification, and known risks.
+  No "done" without evidence.
+- **Stop rules** — the Coder stops rather than silently adding a dependency,
+  changing a shared interface, inventing a new convention, skipping a test, or
+  touching auth/data migrations. Interactively, `/ship` surfaces the trigger to
+  you; unattended, `/ship-overnight` hard-blocks the risky ones (deps, shared
+  interfaces, auth/migrations) and records the rest as assumptions.
+
+The **Reviewer enforces the contracts as a hard gate** (`VERDICT: NEEDS WORK` /
+`BLOCK` if one is missing or violated), and the **Explainer** turns them into a
+learning walkthrough — reading the *why* straight from the diff contract rather
+than re-deriving it. Only committed `REPO_CONTRACT.md` is persistent; the rest
+live in the gitignored `.pipeline/` folder per run.
+
 ## Commands
 
+- **`/map-repo [focus]`** — have Opus (the **cartographer** agent) index the
+  codebase into a committed `REPO_CONTRACT.md`: the canonical file (and example
+  symbol) for schemas, validators, utils, naming, errors, auth, tests, and the
+  package policy. Run it once per repo and refresh it when the codebase drifts;
+  the Planner reads it on every run. Read-only with respect to source code.
 - **`/ship <feature request>`** — the interactive pipeline. Cleans `.pipeline/`,
   then Map → Plan → Code → Test → Review → Explain. Shows you a plain-language
   recap of the plan, and stops for open questions or test failures. Never merges.
@@ -59,15 +94,16 @@ reasoning quality matters most.
   changes.
 
 ```
+/map-repo
 /ship add rate limiting to the login endpoint, max 5 attempts/min/IP, return 429
 /ship-overnight build a CSV export endpoint for the reports table
 /suggest-features focus on test-coverage gaps in the auth module
 /explain src/auth/session.py
 ```
 
-When installed as a plugin the commands are namespaced: `/agent-pipeline:ship`,
-`/agent-pipeline:ship-overnight`, `/agent-pipeline:suggest-features`,
-`/agent-pipeline:explain`.
+When installed as a plugin the commands are namespaced: `/agent-pipeline:map-repo`,
+`/agent-pipeline:ship`, `/agent-pipeline:ship-overnight`,
+`/agent-pipeline:suggest-features`, `/agent-pipeline:explain`.
 
 ## Install (recommended: as a plugin)
 
@@ -211,8 +247,8 @@ system), run the install script from this repo:
 
 It copies the agents into `<repo>/.claude/agents/`, the commands into
 `<repo>/.claude/commands/`, and adds `.pipeline/` to the repo's `.gitignore`.
-Commands are then `/ship`, `/ship-overnight`, `/suggest-features`, and
-`/explain` (no namespace).
+Commands are then `/map-repo`, `/ship`, `/ship-overnight`, `/suggest-features`,
+and `/explain` (no namespace).
 
 ## Tips
 
@@ -306,8 +342,8 @@ session of that repo.
 .claude-plugin/marketplace.json     # marketplace catalog (both plugins)
 plugins/agent-pipeline/
   .claude-plugin/plugin.json        # plugin manifest (version lives here)
-  agents/                           # planner, coder, tester, reviewer, explainer, scout
-  commands/                         # ship, ship-overnight, suggest-features, explain
+  agents/                           # cartographer, planner, coder, tester, reviewer, explainer, scout
+  commands/                         # map-repo, ship, ship-overnight, suggest-features, explain
 plugins/storm-research/
   .claude-plugin/plugin.json        # plugin manifest
   skills/storm-research/
@@ -317,6 +353,7 @@ plugins/storm-research/
   agents/                           # storm-researcher (isolated full-method run)
 examples/
   FEATURES.md                       # starter backlog (copy to your repo root)
+  REPO_CONTRACT.md                  # filled-in repo-contract template (generate yours with /map-repo)
   claude-settings.json              # SessionStart hook for cloud runs
 install.sh                          # vendor the files into any repo (option B)
 ```
