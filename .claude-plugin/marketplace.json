@@ -8,7 +8,7 @@
     {
       "name": "agent-pipeline",
       "source": "./plugins/agent-pipeline",
-      "description": "Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline with a learning stage. Contract-driven (repo/task/diff/evidence) with stop rules and a hard review gate."
+      "description": "Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline with a learning stage. Contract-driven (repo/task/diff/evidence) with stop rules and a hard review gate. Plus /grade-tests: mutation testing (cosmic-ray) that grades whether your suite actually asserts behaviour, with a survivor->assertion report and a baseline ratchet."
     },
     {
       "name": "storm-research",

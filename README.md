@@ -92,6 +92,13 @@ live in the gitignored `.pipeline/` folder per run.
 - **`/explain <file | module | feature>`** — run just the Explainer on demand to
   learn any part of the codebase. With no argument, it explains your most recent
   changes.
+- **`/grade-tests [focus | "improve" | "diff"]`** — have the **mutation-grader**
+  agent score how well your suite actually *asserts* behaviour, not just runs it.
+  It scopes mutation testing (cosmic-ray) to a small allowlist of pure-logic
+  modules, then reports the mutation score and turns each *surviving mutant* into
+  a precise missing-assertion TODO (`file:line` + the operator no test caught).
+  Pass `improve` to have it strengthen the tests, or `diff` to gate only a PR's
+  changed lines. See [Grading your tests](#grading-your-tests-mutation-testing).
 
 ```
 /map-repo
@@ -99,11 +106,57 @@ live in the gitignored `.pipeline/` folder per run.
 /ship-overnight build a CSV export endpoint for the reports table
 /suggest-features focus on test-coverage gaps in the auth module
 /explain src/auth/session.py
+/grade-tests focus on the scoring modules, then improve
 ```
 
 When installed as a plugin the commands are namespaced: `/agent-pipeline:map-repo`,
 `/agent-pipeline:ship`, `/agent-pipeline:ship-overnight`,
-`/agent-pipeline:suggest-features`, `/agent-pipeline:explain`.
+`/agent-pipeline:suggest-features`, `/agent-pipeline:explain`,
+`/agent-pipeline:grade-tests`.
+
+## Grading your tests (mutation testing)
+
+The Tester proves your tests **pass**. `/grade-tests` proves they actually
+**assert** — it grades the suite itself.
+
+Line coverage only tells you a line *ran*; a suite can hit 100% coverage while
+asserting almost nothing. **Mutation testing** closes that gap empirically: it
+injects small faults into your code (`<`→`<=`, `and`→`or`, `True`→`False`,
+deleting a statement), reruns the tests, and asks *"did any test fail?"*. A
+mutant your tests catch is **killed**; one they miss is a **survivor** — a
+precise pointer to a missing assertion. The **mutation score** is
+`killed / (killed + survived)`.
+
+It's powerful but expensive (10–100× a normal run) and noisy (an undecidable
+~4–39% of mutants are *equivalent* — impossible to kill). So the
+**mutation-grader** agent and its bundled `mutation-grading` skill apply the
+discipline that makes it usable:
+
+- **Scope tightly** to a hand-picked allowlist of 3–8 pure, deterministic,
+  dependency-light modules — never the whole repo. (A repo that already isolates
+  "pure-logic" modules for fast tests has done most of this work.)
+- **Point each module at its covering tests** so runs stay fast and correct.
+- **Ratchet a baseline** of accepted/equivalent survivors and fail only on
+  *new* ones; target **75–85%**, never chase 100%.
+- **Diff-gate PRs, trend nightly** — `grade-tests diff` mutates only changed
+  lines; nightly runs append the score to a trend file.
+
+Output is `reports/mutation/REPORT.md`: the scoped score plus, for every
+survivor, its `file:line`, the function, the mutated operator, and the assertion
+to add. The engine is **cosmic-ray** (it runs your real `pytest` command in
+place, so it works with conventional `src/`-layout repos that import
+`from src.x import y` — where mutmut 3.x's trampoline does not). Full strategy,
+the sourced research, and the portable `grade_tests.py` driver live in
+`plugins/agent-pipeline/skills/mutation-grading/`.
+
+```
+/grade-tests                       # scope, run, report the scoped mutation score
+/grade-tests improve               # then strengthen tests until no new survivors
+/grade-tests diff                  # PR gate: only the lines this branch changed
+```
+
+`reports/mutation/baseline.json` is meant to be **committed** (it's the ratchet);
+`.mutation/` and the score trend are gitignored.
 
 ## Install (recommended: as a plugin)
 
@@ -354,8 +407,12 @@ session of that repo.
 .claude-plugin/marketplace.json     # marketplace catalog (both plugins)
 plugins/agent-pipeline/
   .claude-plugin/plugin.json        # plugin manifest (version lives here)
-  agents/                           # cartographer, planner, coder, tester, reviewer, explainer, scout
-  commands/                         # map-repo, ship, ship-overnight, suggest-features, explain
+  agents/                           # cartographer, planner, coder, tester, reviewer, explainer, scout, mutation-grader
+  commands/                         # map-repo, ship, ship-overnight, suggest-features, explain, grade-tests
+  skills/mutation-grading/
+    SKILL.md                        # scoped mutation-testing workflow + checklist
+    reference.md                    # the sourced strategy (STORM-researched)
+    grade_tests.py                  # portable cosmic-ray driver (scope, run, report, ratchet)
 plugins/storm-research/
   .claude-plugin/plugin.json        # plugin manifest
   skills/storm-research/
