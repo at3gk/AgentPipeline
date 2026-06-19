@@ -38,6 +38,12 @@ permanent false "survivors". The whole craft is in *not* running it naively:
    trend file. Keep it on a slow CI lane, off the merge critical path.
 5. **Mind test isolation.** Mutation testing assumes a clean, deterministic,
    well-isolated suite. Flaky/order-dependent tests silently corrupt the score.
+6. **Never run the suite concurrently with a grading run.** cosmic-ray mutates
+   source files **in place** (restoring after each mutant). A normal
+   `pytest`/CI/IDE test run launched *while* a grade is executing will import a
+   transiently-mutated module and fail spuriously. Run grading on its own; if a
+   run is hard-killed mid-flight, check `git status` and `git checkout` any
+   left-mutated source before doing anything else.
 
 A scoped score is a **biased** estimate of whole-suite quality (it measures your
 most-testable code). Report it *with* the scope caveat — never as "the repo's
