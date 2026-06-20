@@ -45,12 +45,14 @@ in the baseline (the ratchet). ``baseline`` rewrites the accepted set.
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import shutil
 import subprocess
 import sys
 from datetime import date
+from functools import lru_cache
 from pathlib import Path
 
 try:  # py3.11+
@@ -163,10 +165,61 @@ def run_module(cfg: Config, module: dict, diff_base: str | None) -> dict:
     return parse_session(cfg, sqlite_path)
 
 
+@lru_cache(maxsize=None)
+def _annotation_union_lines(module_path: str) -> frozenset[int]:
+    """Line numbers where a ``|`` sits inside a PEP-604 type annotation
+    (``x: A | B``, ``-> A | B``, ``x: A | B = ...``).
+
+    Under ``from __future__ import annotations`` the annotation is never
+    evaluated, so cosmic-ray's ``ReplaceBinaryOperator_BitOr_*`` on it is an
+    **equivalent mutant** that can never be killed. We exclude those from the
+    score rather than nag about them forever. (A real bitwise/dict-merge ``|``
+    is *not* in an annotation, so it is unaffected.)
+    """
+    try:
+        src = Path(module_path).read_text(encoding="utf-8")
+        tree = ast.parse(src)
+    except (OSError, SyntaxError):
+        return frozenset()
+    has_future = any(
+        isinstance(n, ast.ImportFrom) and n.module == "__future__"
+        and any(a.name == "annotations" for a in n.names)
+        for n in ast.walk(tree)
+    )
+    if not has_future:
+        return frozenset()  # union is evaluated -> mutant is real, keep it
+
+    lines: set[int] = set()
+
+    def collect(annotation) -> None:
+        for n in ast.walk(annotation):
+            if isinstance(n, ast.BinOp) and isinstance(n.op, ast.BitOr):
+                lines.add(n.lineno)
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.arg) and node.annotation:
+            collect(node.annotation)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns:
+            collect(node.returns)
+        elif isinstance(node, ast.AnnAssign) and node.annotation:
+            collect(node.annotation)
+    return frozenset(lines)
+
+
+def _is_equivalent_annotation_mutant(cfg: Config, mut: dict, line) -> bool:
+    op = mut.get("operator_name") or ""
+    if "ReplaceBinaryOperator_BitOr" not in op:
+        return False
+    module = mut.get("module_path")
+    if not module or line is None:
+        return False
+    return line in _annotation_union_lines(str(cfg.root / module))
+
+
 def parse_session(cfg: Config, sqlite_path: Path) -> dict:
     """Parse a cosmic-ray session via `cosmic-ray dump` (JSONL of [workitem, result])."""
     dump = _run(["cosmic-ray", "dump", str(sqlite_path)], cwd=cfg.root)
-    killed = survived = incompetent = pending = 0
+    killed = survived = incompetent = pending = equivalent = 0
     survivors = []
     for line in dump.stdout.splitlines():
         line = line.strip()
@@ -188,10 +241,14 @@ def parse_session(cfg: Config, sqlite_path: Path) -> dict:
         elif outcome == "killed":
             killed += 1
         elif outcome == "survived":
+            line = (mut.get("start_pos") or [None])[0]
+            if _is_equivalent_annotation_mutant(cfg, mut, line):
+                equivalent += 1   # PEP-604 annotation union -> can't be killed
+                continue
             survived += 1
             survivors.append({
                 "module": mut.get("module_path"),
-                "line": (mut.get("start_pos") or [None])[0],
+                "line": line,
                 "operator": mut.get("operator_name"),
                 "function": mut.get("definition_name"),
             })
@@ -201,7 +258,8 @@ def parse_session(cfg: Config, sqlite_path: Path) -> dict:
     score = round(100.0 * killed / scored, 1) if scored else 100.0
     return {
         "killed": killed, "survived": survived, "incompetent": incompetent,
-        "pending": pending, "total": killed + survived + incompetent,
+        "equivalent": equivalent, "pending": pending,
+        "total": killed + survived + incompetent + equivalent,
         "score": score, "survivors": survivors,
     }
 
@@ -239,6 +297,7 @@ def write_report(cfg: Config, per_module: dict, baseline: set[str]) -> dict:
     killed = sum(r["killed"] for r in per_module.values())
     survived = sum(r["survived"] for r in per_module.values())
     incompetent = sum(r["incompetent"] for r in per_module.values())
+    equivalent = sum(r.get("equivalent", 0) for r in per_module.values())
     scored = killed + survived
     score = round(100.0 * killed / scored, 1) if scored else 100.0
     new_survivors = [s for s in all_survivors if survivor_sig(s) not in baseline]
@@ -254,7 +313,8 @@ def write_report(cfg: Config, per_module: dict, baseline: set[str]) -> dict:
         "",
         f"- **Mutation score: {score}%**  (killed {killed} / {scored} scored mutants)",
         f"- Survivors: {survived}  ·  of which **new (not in baseline): {len(new_survivors)}**",
-        f"- Excluded (incompetent/no-test): {incompetent}",
+        f"- Excluded: {incompetent} incompetent/no-test · "
+        f"{equivalent} equivalent (PEP-604 annotation `|`, auto-detected)",
         "",
         "| Module | Score | Killed | Survived | New |",
         "|---|---:|---:|---:|---:|",

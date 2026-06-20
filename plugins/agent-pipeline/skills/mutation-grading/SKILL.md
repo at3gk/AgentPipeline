@@ -32,7 +32,9 @@ permanent false "survivors". The whole craft is in *not* running it naively:
    unusably slow. List the specific `tests = [...]` for each module.
 3. **Ratchet a baseline, don't chase 100%.** Target **75–85%** on the scoped set.
    Accept genuine equivalent mutants into a baseline so they stop re-nagging;
-   fail only on **new** survivors.
+   fail only on **new** survivors. (PEP-604 annotation-union `|` mutants — e.g.
+   `x: A | B` under `from __future__ import annotations` — are *auto-detected*
+   as equivalent and excluded from the score; you don't baseline those.)
 4. **Diff-gate PRs, trend nightly.** On a PR, mutate only changed lines
    (`diff --base`). Nightly, run the full scoped set and append the score to a
    trend file. Keep it on a slow CI lane, off the merge critical path.
