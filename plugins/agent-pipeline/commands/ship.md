@@ -1,5 +1,5 @@
 ---
-description: Run the full Map -> Plan -> Code -> Test -> Review -> Explain feature pipeline for the given request.
+description: Run the full Map -> Plan -> Code -> Test -> Review -> Learn feature pipeline for the given request.
 ---
 
 Run the full feature pipeline for: $ARGUMENTS
@@ -13,9 +13,13 @@ Execute these stages in order. Do not skip ahead. After each stage, confirm the 
 2. If the spec has **OPEN QUESTIONS**, stop and show them to me. Otherwise delegate to the **coder** subagent. Wait for `.pipeline/changes.md`. If `changes.md` flags any **stop-rule trigger** (a new dependency, a shared-interface change, a new convention, a skipped test, or an auth/migration touch), stop and show it to me before continuing — do not proceed past a stop rule on your own.
 3. Delegate to the **tester** subagent. Wait for `.pipeline/test-results.md`. If tests failed, stop and show me the failures.
 4. Delegate to the **reviewer** subagent. Wait for `.pipeline/review.md`.
-5. Delegate to the **explainer** subagent in pipeline mode (point it at `.pipeline/`). Wait for `.pipeline/explanation.md`.
+5. **Learn — interactive understanding session (run by you, the orchestrator, not a subagent).** First report the review verdict from `review.md` (its first line). Then, if the run shipped, do **not** delegate this stage and do **not** just write a file — an explanation a subagent files away is one I will skip. Instead, *you* already hold the full context (`spec.md`, `changes.md`, `test-results.md`, `review.md`, plus `git diff`), so walk me through the change live so I can stand behind it at push/review time:
+   - Open with the **mental model** (2–3 sentences: what changed and how to think about it) and the **guided reading order** — the handful of files/hunks to read and what each contributes.
+   - Then walk the change **one logical unit at a time** (grouped by behaviour, not mechanically file-by-file). For each unit: frame the *why* in a sentence, point me at the `file:line`, then **check my understanding with one pointed question** — an edge case, why this approach over the obvious alternative, or what would break if it were reverted — and **wait for my answer before moving on**. Confirm or correct it. The goal is active recall, not a lecture I skim.
+   - Invite my questions at each step, and adapt the pace: compress where I am clearly following, slow down and dig where I stumble.
+   - Close with a short recap and what to study next. Then **offer** to write the session's key points to `.pipeline/explanation.md` as a record for the PR description / code review — write it only if I say yes.
 
-Report the final verdict from `review.md` (the first line) and a short summary of `explanation.md`. Do not merge anything. Leave the branch for my review.
+Do not merge anything. Leave the branch for my review.
 
 **Optional extra gates (opt-in, not part of the core flow).** For a security-sensitive feature, after the Review stage run `/security-review` as an extra gate before you merge — it audits the branch diff and writes a parseable `VERDICT` to `reports/security/REPORT.md`. After the pipeline, `/code-simplify` cleans up the new code behaviour-preservingly, and `/perf` profiles any hot path. These are separate pipelines you invoke deliberately; `/ship` does not run them automatically.
 
