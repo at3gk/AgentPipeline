@@ -21,7 +21,7 @@ If `.understand-anything/knowledge-graph.json` exists, leave it for the Planner.
 
 ## 2. Plan
 
-Delegate to the **planner** subagent with the feature. Wait for `.pipeline/spec.md`.
+Delegate to the **planner** subagent with the feature. Wait for `.pipeline/spec.md`. (If a `.pipeline/brief.md` from a prior `/clarify` run is present, the Planner grounds the spec in it.)
 
 - If the spec contains **OPEN QUESTIONS**, you cannot ask me — so make the most reasonable assumption for each, write your chosen answers into `.pipeline/spec.md` under a **"Assumptions made (unattended run)"** heading, and continue. These assumptions go in the morning report.
 
@@ -44,10 +44,11 @@ Run this loop. Let `ROUND = 0` and `MAX_ROUNDS = 2`.
 
 ## 4. Ship (verdict was SHIP)
 
-1. Delegate to the **explainer** subagent in pipeline mode (Mode A), pointed at `.pipeline/`. Wait for `.pipeline/explanation.md`.
-2. Write the morning report (see below) with status **SHIPPED**.
-3. If the feature came from `FEATURES.md`, check its box (`- [ ]` → `- [x]`).
-4. Final commit: `git add -A` then commit `feat(overnight): <feature>`.
+1. **Optional security gate.** If the feature touched a security-sensitive surface (auth, input handling, data access, secrets, outbound requests), delegate to the **security-auditor** subagent to audit the branch diff; it writes `reports/security/REPORT.md` with a parseable `VERDICT`. If the verdict is `BLOCK`, treat it like a failed review: if rounds remain, feed the findings back to the Coder; otherwise go to step 5, Blocked. Fold the verdict into the morning report. (Skip this for changes with no security surface.)
+2. Delegate to the **explainer** subagent in pipeline mode (Mode A), pointed at `.pipeline/`. Wait for `.pipeline/explanation.md`.
+3. Write the morning report (see below) with status **SHIPPED**.
+4. If the feature came from `FEATURES.md`, check its box (`- [ ]` → `- [x]`).
+5. Final commit: `git add -A` then commit `feat(overnight): <feature>`.
 
 ## 5. Blocked (ran out of rounds)
 

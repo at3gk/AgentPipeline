@@ -8,7 +8,7 @@
     {
       "name": "agent-pipeline",
       "source": "./plugins/agent-pipeline",
-      "description": "Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline with a learning stage. Contract-driven (repo/task/diff/evidence) with stop rules and a hard review gate. Plus /grade-tests: mutation testing (cosmic-ray) that grades whether your suite actually asserts behaviour, with a survivor->assertion report and a baseline ratchet."
+      "description": "A suite of composable dev pipelines. Core: a Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline, contract-driven (repo/task/diff/evidence) with stop rules and a hard review gate. Plus standalone lifecycle pipelines you run on their own or chain into /ship: /clarify (one-question-at-a-time brief), /debug (root-cause loop with a guard test), /security-review (read-only OWASP gate with a parseable verdict), /code-simplify (behaviour-preserving cleanup), /perf (measure-first optimization), and /grade-tests (mutation testing)."
     },
     {
       "name": "storm-research",
