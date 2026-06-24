@@ -18,6 +18,34 @@ narrow context and handing off to the next through a shared `.pipeline/` folder.
 Run it interactively while you work, autonomously overnight, or on a schedule in
 the cloud so features land while your computer is off.
 
+## The pipelines
+
+`agent-pipeline` is a **suite of composable pipelines** mapped to the development
+lifecycle. The feature pipeline (`/ship`) is the spine; the rest are standalone
+commands you run on their own *or* chain around `/ship`. Each follows the same
+recipe — a command delegates to a specialist subagent that reads a bundled skill
+— and each enforces *evidence*, not vibes: a parseable verdict, a measured
+number, a guard test, green tests.
+
+| Phase | Command | What it does | Output |
+|------|---------|--------------|--------|
+| **Define** | `/clarify <idea>` | Interviews you one question at a time to a build-ready brief | `.pipeline/brief.md` → feeds `/ship` |
+| **Build** | `/ship <feature>` | The full Map→Plan→Code→Test→Review→Explain feature pipeline | reviewed, tested branch |
+| | `/ship-overnight` | The same, autonomous: branch, auto-fix loop, pushed morning report | pushed `claude/overnight-*` branch |
+| **Verify** | `/debug <symptom>` | Reproduce→localize→reduce→fix→guard; minimal fix + a regression test | `.pipeline/debug-report.md` + guard test |
+| | `/grade-tests` | Mutation testing — does your suite *assert*, not just run? | `reports/mutation/REPORT.md` |
+| **Review** | `/security-review` | Read-only OWASP gate over the branch diff | `reports/security/REPORT.md` (`VERDICT:`) |
+| | `/code-simplify` | Behaviour-preserving cleanup (Chesterton's Fence) | `.pipeline/simplification.md` |
+| | `/perf` | Measure-first optimization — no number, no change | `reports/perf/REPORT.md` |
+| **Groom** | `/suggest-features` | Proposes small, evidence-backed backlog candidates | `FEATURES.md` (`## Proposed`) |
+| **Learn** | `/explain <target>` | Read-only teaching walkthrough of any file/module/feature | `.pipeline/explanation.md` |
+
+A natural chain: `/clarify` an idea → `/ship` it → `/security-review` the
+result → `/code-simplify` and `/perf` the hot paths. Each is independent, so use
+only the ones a given change needs. The feature pipeline is documented first
+below; the standalone pipelines follow under [Commands](#commands), and the
+research plugin last.
+
 ## The pipeline
 
 | Stage | Agent | Model | Role |
@@ -92,6 +120,39 @@ live in the gitignored `.pipeline/` folder per run.
 - **`/explain <file | module | feature>`** — run just the Explainer on demand to
   learn any part of the codebase. With no argument, it explains your most recent
   changes.
+- **`/clarify <rough idea>`** — the **Define** stage. Have the **clarifier** agent
+  interview you **one question at a time** — each the highest-value unknown left,
+  with a sensible default — until it can describe the work at ~95% confidence,
+  then write a build-ready brief (objective, scope, non-goals, constraints,
+  acceptance criteria) to `.pipeline/brief.md`. The Planner reads it on the next
+  `/ship`, so a vague request becomes a tight spec. Read-only with respect to
+  source code.
+- **`/debug <error | failing test | symptom>`** — have the **debugger** agent work
+  a disciplined **reproduce → localize → reduce → fix → guard** loop: get a
+  deterministic reproduction, bisect to the *root cause* (not the first line that
+  throws), apply the **minimal** fix, and add a regression test that **fails
+  before and passes after**. Writes `.pipeline/debug-report.md`. It fixes the
+  cause, not the symptom — and escalates instead of forcing a patch when the cause
+  is a design problem.
+- **`/security-review [scope | "full"]`** — have the **security-auditor** agent run
+  a **read-only** OWASP-lens audit (broken access control, injection, secrets,
+  SSRF, deserialization, crypto). Defaults to the branch diff vs `main`. Writes
+  `reports/security/REPORT.md` whose **first line is a machine-readable**
+  `VERDICT: PASS / FINDINGS / BLOCK`, with each finding's `file:line`, severity
+  (rated by impact), and concrete fix. A gate, not a fixer — run it before merge
+  on security-sensitive features.
+- **`/code-simplify [scope] [improve]`** — have the **simplifier** agent reduce
+  complexity **without changing behaviour**: dead code, duplication, needless
+  indirection, over-abstraction, tangled control flow. It obeys **Chesterton's
+  Fence** (explain why a construct exists before touching it) and proves
+  behaviour is preserved by keeping the **same tests green**. Proposes by default
+  (`.pipeline/simplification.md`); `improve` applies the safe subset.
+- **`/perf [scope] [improve]`** — have the **perf-auditor** agent optimize
+  **measure-first**: profile to find the real bottleneck, diagnose why it's hot
+  (algorithmic, N+1 queries, repeated work, I/O), and report (or, with `improve`,
+  apply) only changes backed by a **measured before/after**. Writes
+  `reports/perf/REPORT.md`. Its rule is *no number, no change* — it refuses to
+  optimize on a guess.
 - **`/grade-tests [focus | "improve" | "diff"]`** — have the **mutation-grader**
   agent score how well your suite actually *asserts* behaviour, not just runs it.
   It scopes mutation testing (cosmic-ray) to a small allowlist of pure-logic
@@ -102,15 +163,22 @@ live in the gitignored `.pipeline/` folder per run.
 
 ```
 /map-repo
+/clarify add a way for users to export their reports
 /ship add rate limiting to the login endpoint, max 5 attempts/min/IP, return 429
 /ship-overnight build a CSV export endpoint for the reports table
+/debug test_login_lockout fails intermittently with a 500
+/security-review                       # gate the current branch before merge
+/code-simplify src/reports/ improve
+/perf the /reports/export endpoint
 /suggest-features focus on test-coverage gaps in the auth module
 /explain src/auth/session.py
 /grade-tests focus on the scoring modules, then improve
 ```
 
 When installed as a plugin the commands are namespaced: `/agent-pipeline:map-repo`,
-`/agent-pipeline:ship`, `/agent-pipeline:ship-overnight`,
+`/agent-pipeline:clarify`, `/agent-pipeline:ship`, `/agent-pipeline:ship-overnight`,
+`/agent-pipeline:debug`, `/agent-pipeline:security-review`,
+`/agent-pipeline:code-simplify`, `/agent-pipeline:perf`,
 `/agent-pipeline:suggest-features`, `/agent-pipeline:explain`,
 `/agent-pipeline:grade-tests`.
 
@@ -407,12 +475,18 @@ session of that repo.
 .claude-plugin/marketplace.json     # marketplace catalog (both plugins)
 plugins/agent-pipeline/
   .claude-plugin/plugin.json        # plugin manifest (version lives here)
-  agents/                           # cartographer, planner, coder, tester, reviewer, explainer, scout, mutation-grader
-  commands/                         # map-repo, ship, ship-overnight, suggest-features, explain, grade-tests
-  skills/mutation-grading/
-    SKILL.md                        # scoped mutation-testing workflow + checklist
-    reference.md                    # the sourced strategy (STORM-researched)
-    grade_tests.py                  # portable cosmic-ray driver (scope, run, report, ratchet)
+  agents/                           # cartographer, planner, coder, tester, reviewer, explainer, scout,
+                                    #   mutation-grader, clarifier, debugger, security-auditor, simplifier, perf-auditor
+  commands/                         # map-repo, ship, ship-overnight, suggest-features, explain, grade-tests,
+                                    #   clarify, debug, security-review, code-simplify, perf
+  skills/                           # each standalone pipeline's process lives in a bundled skill
+    mutation-grading/               # SKILL.md + reference.md + grade_tests.py (portable cosmic-ray driver)
+    spec-driven/                    # /clarify — one-question discovery + brief template + definition of done
+    debugging/                      # /debug — reproduce->localize->reduce->fix->guard + symptom-vs-cause catalogue
+    security-review/                # /security-review — OWASP checklist + severity rubric
+    code-simplification/            # /code-simplify — Chesterton's Fence + behaviour-preservation discipline
+    performance/                    # /perf — measure-first method + optimization catalogue
+    #   every skill ends with anti-rationalizations / red-flags / verification-gates (process, not prose)
 plugins/storm-research/
   .claude-plugin/plugin.json        # plugin manifest
   skills/storm-research/
