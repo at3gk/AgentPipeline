@@ -8,7 +8,7 @@
     {
       "name": "agent-pipeline",
       "source": "./plugins/agent-pipeline",
-      "description": "A suite of composable dev pipelines. Core: a Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline, contract-driven (repo/task/diff/evidence) with stop rules and a hard review gate. Plus standalone lifecycle pipelines you run on their own or chain into /ship: /clarify (one-question-at-a-time brief), /debug (root-cause loop with a guard test), /security-review (read-only OWASP gate with a parseable verdict), /code-simplify (behaviour-preserving cleanup), /perf (measure-first optimization), and /grade-tests (mutation testing)."
+      "description": "A suite of composable dev pipelines. Core: a Planner -> Coder -> Tester -> Reviewer -> Explainer feature pipeline, contract-driven (repo/task/diff/evidence) with stop rules and a hard review gate. Plus standalone lifecycle pipelines you run on their own or chain into /ship: /clarify (one-question-at-a-time brief), /debug (root-cause loop with a guard test), /security-review (read-only OWASP gate with a parseable verdict), /code-simplify (behaviour-preserving cleanup), /perf (measure-first optimization), and /grade-tests (mutation testing). Plus a cross-cutting context-economy discipline (terse, cache-friendly, lossless-evidence handoffs) adapted from Headroom's token-reduction ideas."
     },
     {
       "name": "storm-research",

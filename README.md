@@ -46,6 +46,29 @@ only the ones a given change needs. The feature pipeline is documented first
 below; the standalone pipelines follow under [Commands](#commands), and the
 research plugin last.
 
+### Token economy (adapted from Headroom)
+
+A multi-stage pipeline re-reads a lot of shared context, so the agents follow a
+cross-cutting **`context-economy`** skill that spends fewer tokens *without*
+losing answers. The ideas are adapted from
+[Headroom](https://github.com/headroomlabs-ai/headroom)'s token-reduction work,
+but **not its runtime** — we deliberately kept the discipline at the *authoring*
+layer (how handoffs are written and ordered), not a proxy that rewrites traffic:
+
+- **Output economy** — lead with the verdict/answer, cut preamble, and point at
+  code by `file:line` instead of re-printing diffs the reader already has.
+- **Cache-friendly ordering** — stable instructions first, run-specific content
+  last, so prompt-cache prefixes survive across stages.
+- **Lossless evidence** — handoffs are compressed *views* (summary + pointers);
+  the real diff/output a later gate must verify is never paraphrased away.
+
+This matters because it's **cloud-safe and correctness-safe**: Headroom's proxy
+can't run in the managed cloud container and compresses lossily, whereas an
+authoring discipline works everywhere `.claude/` is committed and never touches
+the evidence the Reviewer reads. (Headroom's own design agrees — it refuses to
+compress `tool_result`, "the cache hot zone.") It's a discipline, not a command —
+there's nothing to invoke.
+
 ## The pipeline
 
 | Stage | Agent | Model | Role |
@@ -486,6 +509,7 @@ plugins/agent-pipeline/
     security-review/                # /security-review — OWASP checklist + severity rubric
     code-simplification/            # /code-simplify — Chesterton's Fence + behaviour-preservation discipline
     performance/                    # /perf — measure-first method + optimization catalogue
+    context-economy/                # cross-cutting — terse, cache-friendly, lossless-evidence handoffs (adapted from Headroom)
     #   every skill ends with anti-rationalizations / red-flags / verification-gates (process, not prose)
 plugins/storm-research/
   .claude-plugin/plugin.json        # plugin manifest

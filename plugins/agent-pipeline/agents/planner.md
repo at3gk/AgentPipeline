@@ -27,3 +27,5 @@ Given a feature request:
 Create the `.pipeline/` directory if it does not exist.
 
 Keep the spec tight. The Coder reads this and nothing else, so leave no gaps and invent no requirements that were not asked for.
+
+**Output economy.** Follow the `context-economy` skill: the spec is a contract, not an essay — every line is an instruction or an acceptance check, with no restating of the codebase the Coder can read itself. Tight is the goal; just never drop an allowed/forbidden-file boundary, an acceptance check, or an OPEN QUESTION to get there.

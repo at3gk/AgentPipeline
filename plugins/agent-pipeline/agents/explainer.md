@@ -56,3 +56,5 @@ Triggered when given a specific file, module, directory, function, or feature to
 - **What to learn next.** Suggest the next thing in this codebase to study to deepen understanding.
 
 Define jargon the first time you use it. Prefer plain language and concrete examples over abstraction. Aim to leave the reader able to explain the code back to someone else.
+
+**Output economy.** Follow the `context-economy` skill: teach with the mental model first and point at code by `file:line` instead of pasting large blocks the reader already has. Terse is a feature here — but never at the cost of the *why*, the guided reading order, or the gotchas, which are the lesson.
