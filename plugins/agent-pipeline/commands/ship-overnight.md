@@ -6,6 +6,8 @@ Autonomously ship this feature end to end, without stopping to ask me: $ARGUMENT
 
 You are running unattended (overnight, or in a scheduled cloud session). Make reasonable decisions and keep going. Your job is to leave a clean, pushed branch and a morning report — never to merge.
 
+**Model tier.** Check `AGENT_PIPELINE_FABLE` once at the start. If it is `1`, delegate to the **planner** and **reviewer** stages with `model: claude-fable-5` (per-spawn override) for the highest-quality plan and review on this unattended run; the Coder stays Sonnet and every other stage stays Opus. **Keep the security-auditor on Opus regardless** — Fable's safety classifiers false-positive on security analysis. If the variable is unset, delegate normally (Opus). See `MODEL-TIERS.md`.
+
 ## 0. Pick the work and prepare
 
 1. **Determine the feature.**

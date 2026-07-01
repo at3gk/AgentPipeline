@@ -4,6 +4,8 @@ description: Reduce complexity in a scope without changing behaviour — propose
 
 Simplify: $ARGUMENTS
 
+**Model tier.** The simplifier is Fable-eligible: if `AGENT_PIPELINE_FABLE` is `1`, delegate with `model: claude-fable-5` (behaviour-preservation reasoning benefits); otherwise use its default Opus. See `MODEL-TIERS.md`.
+
 Delegate to the **simplifier** subagent. Ask it to read the bundled
 `code-simplification` skill, then look for **behaviour-preserving** ways to make
 the code clearer: dead code, duplication that should be reused (point it at
