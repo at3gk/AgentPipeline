@@ -40,6 +40,7 @@ and long-horizon agentic work — where the capability gain justifies the premiu
 | Agent | Why Fable earns its cost here |
 |---|---|
 | `planner` | The spec drives every downstream stage; better planning compounds. |
+| `coder` | First-shot implementation of a well-specified spec is Fable's headline strength. It is Sonnet by default (throughput, gated by review); the tier only fires once the operator has accepted Fable's premium, so the cost reason to keep it cheap no longer applies — Sonnet → Fable is the biggest single-stage quality jump available. |
 | `reviewer` | Last-line correctness + simplicity gate; the strongest catcher pays for itself. |
 | `debugger` | Root-causing novel failures is the hardest reasoning, with no gate after it. |
 | `simplifier` | Behaviour-preservation proofs (Chesterton's Fence) are subtle and high-stakes. |
@@ -53,16 +54,17 @@ and long-horizon agentic work — where the capability gain justifies the premiu
 
 ## Unchanged (frontmatter model stands)
 
-- `coder`, `tester` → **Sonnet**. High-throughput generation, gated by the Opus/Fable reviewer. The tokens live here; keep them cheap.
+- `tester` → **Sonnet**. High-volume test generation, gated by the Opus `mutation-grader`. The tokens live here; keep them cheap. (`coder` is Sonnet by default too, but is Fable-eligible — see the table above.)
 - `cartographer`, `scout`, `explainer`, `clarifier`, `mutation-grader`, `storm-researcher` → **Opus**. Extraction, ideation, teaching, and interviewing — Fable's premium is not justified, and these run infrequently.
 
 ## Summary
 
 ```
-AGENT_PIPELINE_FABLE=1  →  planner, reviewer, debugger, simplifier, perf-auditor  ⇒ claude-fable-5
+AGENT_PIPELINE_FABLE=1  →  planner, coder, reviewer, debugger,
+                             simplifier, perf-auditor                              ⇒ claude-fable-5
                            security-auditor                                       ⇒ claude-opus-4-8 (pinned)
-                           coder, tester                                          ⇒ sonnet   (unchanged)
+                           tester                                                 ⇒ sonnet   (unchanged)
                            cartographer, scout, explainer, clarifier,
                              mutation-grader, storm-researcher                     ⇒ opus     (unchanged)
-unset (default)         →  every agent uses its frontmatter model
+unset (default)         →  every agent uses its frontmatter model (coder/tester Sonnet, rest Opus)
 ```

@@ -6,7 +6,7 @@ Run the full feature pipeline for: $ARGUMENTS
 
 First, clean up stale handoffs: delete any existing files in `.pipeline/` so no agent reads output from a previous run. Recreate the empty `.pipeline/` directory.
 
-**Model tier.** Check `AGENT_PIPELINE_FABLE` once (e.g. `printenv AGENT_PIPELINE_FABLE`). If it is `1`, delegate to the **planner** and **reviewer** stages with `model: claude-fable-5` (per-spawn override); every other stage keeps its own model — the Coder stays Sonnet, the rest stay Opus. If it is unset, delegate normally. See `MODEL-TIERS.md` for the rationale and the full eligible set. This is a quality/cost opt-in, not required — the pipeline runs on Opus by default.
+**Model tier.** Check `AGENT_PIPELINE_FABLE` once (e.g. `printenv AGENT_PIPELINE_FABLE`). If it is `1`, delegate to the **planner**, **coder**, and **reviewer** stages with `model: claude-fable-5` (per-spawn override) — the Tester stays Sonnet. If it is unset, delegate normally (Coder Sonnet, the rest Opus). See `MODEL-TIERS.md` for the rationale and the full eligible set. This is a quality/cost opt-in, not required — the pipeline runs on its default models by default.
 
 Execute these stages in order. Do not skip ahead. After each stage, confirm the handoff file exists before starting the next.
 
