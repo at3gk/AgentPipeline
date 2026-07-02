@@ -4,7 +4,7 @@ description: Read-only security audit of the branch changes (or a named scope) t
 
 Security review: $ARGUMENTS
 
-**Model tier.** The security-auditor is **pinned to Opus** — do not run it on Fable even when `AGENT_PIPELINE_FABLE` is `1`. Fable's safety classifiers false-positive on security/cyber work (a benign audit can come back as a `refusal`), and its bug-finding gains exclude security-focused analysis. See `MODEL-TIERS.md`.
+**Model tier.** The security-auditor is **pinned to Opus** — never run it on Fable, even though the rest of the pipeline auto-uses Fable when available. Fable's safety classifiers false-positive on security/cyber work (a benign audit can come back as a `refusal`), and its bug-finding gains exclude security-focused analysis. See `MODEL-TIERS.md`.
 
 Delegate to the **security-auditor** subagent. Ask it to read the bundled
 `security-review` skill, then audit for real, exploitable issues — not style.

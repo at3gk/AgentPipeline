@@ -1,37 +1,43 @@
-# Model tiers — optional Fable upgrade
+# Model tiers — automatic Fable upgrade
 
 The pipeline runs on a **reason-in-Opus / generate-in-Sonnet** split by default
-(see each agent's `model:` frontmatter). This file adds an **opt-in Fable tier**:
-when enabled, the hardest-reasoning stages run on `claude-fable-5` — Anthropic's
-most capable model — and everything else is unchanged. It is **off by default**,
-so the pipeline works verbatim in any org.
+(see each agent's `model:` frontmatter). On top of that, the hardest-reasoning
+stages **automatically run on `claude-fable-5` — Anthropic's most capable model —
+whenever Fable is available, and silently fall back to their default model when it
+isn't.** No flags, no setup: run the command as normal and it does the right thing.
 
-## The gate (default-safe, opt-in)
+## Auto-detection (no config)
 
-The Fable tier is gated on an environment variable, following the repo
-convention of *safe default, explicit opt-in*:
+An orchestrator command (`/ship`, `/ship-overnight`) or a standalone command
+(`/debug`, `/perf`, `/code-simplify`) resolves Fable availability **once per run,
+by attempting the first Fable-eligible delegation on Fable and watching the
+result** — no separate probe call:
 
-| `AGENT_PIPELINE_FABLE` | Behaviour |
-|---|---|
-| unset / `0` (default) | Every agent uses its frontmatter `model:` (Opus / Sonnet). Nothing changes. |
-| `1` | The **Fable-eligible** agents below are spawned on `claude-fable-5`; all others keep their frontmatter model. |
+1. When delegating to the **first** Fable-eligible stage, request
+   `model: claude-fable-5` (the per-spawn model override takes precedence over the
+   agent's frontmatter).
+2. **If that delegation fails because Fable is unavailable** — the model isn't
+   accessible to this org, or the request is refused for data-retention reasons
+   (Fable requires 30-day retention; a zero-data-retention org gets a `400`) —
+   re-run that same stage on its **default** model, record that Fable is
+   unavailable for the rest of this run, and delegate every remaining stage
+   normally. The run continues seamlessly; the only cost is one failed-then-retried
+   spawn on the first eligible stage.
+3. **If it succeeds**, Fable is available: use `claude-fable-5` for every
+   Fable-eligible stage this run.
 
-**Why a gate and not just `model: fable` in frontmatter.** Fable is not universally
-available and is ~2× Opus's price ($10/$50 vs $5/$25 per MTok). It also requires
-**30-day data retention** — an org on zero-data-retention gets a `400` on *every*
-Fable request. Opus therefore stays the committed default so the pipeline runs
-everywhere; opting into Fable is a deliberate per-operator choice. If the override
-is ignored, or Fable is unavailable, the Opus frontmatter default is the fallback —
-so a wrong opt-in degrades to Opus, it does not break the run.
+So availability is discovered from the first real delegation, not a config value —
+"use Fable if it's there, otherwise default back" happens on its own. Because Opus
+stays the committed frontmatter default, the fallback path is always safe: a
+Fable-less environment degrades to today's Opus/Sonnet behaviour with no error.
 
-**Applying it.** An orchestrator command (`/ship`, `/ship-overnight`) or a
-standalone command (`/debug`, `/perf`, `/code-simplify`) checks the gate once —
-e.g. `printenv AGENT_PIPELINE_FABLE` — and, when it is `1`, requests
-`model: claude-fable-5` as it delegates to a Fable-eligible agent (the per-spawn
-model override takes precedence over the agent's frontmatter). When the gate is
-unset it delegates normally.
+**Optional override (not required).** If you ever want to *force* the default
+tier — e.g. to cap cost on a run even though Fable is available — set
+`AGENT_PIPELINE_FABLE=0`, and the commands skip the Fable attempt entirely.
+Unset (the normal case) means auto-detect. There is nothing to set to *get* Fable;
+it's automatic.
 
-## Fable-eligible agents (run on Fable when the gate is on)
+## Fable-eligible agents (auto-run on Fable when it's available)
 
 Chosen for what Fable is documented to be best at — the most demanding reasoning,
 code review and debugging, first-shot implementation of well-specified systems,
@@ -60,11 +66,13 @@ and long-horizon agentic work — where the capability gain justifies the premiu
 ## Summary
 
 ```
-AGENT_PIPELINE_FABLE=1  →  planner, coder, reviewer, debugger,
+Fable available (auto)  →  planner, coder, reviewer, debugger,
                              simplifier, perf-auditor                              ⇒ claude-fable-5
                            security-auditor                                       ⇒ claude-opus-4-8 (pinned)
-                           tester                                                 ⇒ sonnet   (unchanged)
+                           tester                                                 ⇒ sonnet
                            cartographer, scout, explainer, clarifier,
-                             mutation-grader, storm-researcher                     ⇒ opus     (unchanged)
-unset (default)         →  every agent uses its frontmatter model (coder/tester Sonnet, rest Opus)
+                             mutation-grader, storm-researcher                     ⇒ opus
+Fable unavailable       →  every agent uses its frontmatter model (coder/tester Sonnet, rest Opus)
+  (auto-fallback)            — discovered from the first eligible delegation, no error
+Force default: AGENT_PIPELINE_FABLE=0 (optional; caps cost even when Fable is available)
 ```

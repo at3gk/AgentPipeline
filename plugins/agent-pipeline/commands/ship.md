@@ -6,7 +6,7 @@ Run the full feature pipeline for: $ARGUMENTS
 
 First, clean up stale handoffs: delete any existing files in `.pipeline/` so no agent reads output from a previous run. Recreate the empty `.pipeline/` directory.
 
-**Model tier.** Check `AGENT_PIPELINE_FABLE` once (e.g. `printenv AGENT_PIPELINE_FABLE`). If it is `1`, delegate to the **planner**, **coder**, and **reviewer** stages with `model: claude-fable-5` (per-spawn override) — the Tester stays Sonnet. If it is unset, delegate normally (Coder Sonnet, the rest Opus). See `MODEL-TIERS.md` for the rationale and the full eligible set. This is a quality/cost opt-in, not required — the pipeline runs on its default models by default.
+**Model tier (automatic — no setup).** The **planner**, **coder**, and **reviewer** stages run on `claude-fable-5` when Fable is available and fall back to their defaults when it isn't. Detect availability from the first eligible delegation: spawn the **planner** with `model: claude-fable-5` (per-spawn override). If that spawn **fails because Fable is unavailable or refused** (not accessible to this org, or a zero-data-retention `400`), re-run the planner on its default model and use the defaults for the coder and reviewer too this run. If it **succeeds**, use `claude-fable-5` for the coder and reviewer as well. The **Tester stays Sonnet**; everything else stays Opus. (Optional escape hatch: `AGENT_PIPELINE_FABLE=0` forces the default tier even when Fable is available.) See `MODEL-TIERS.md`.
 
 Execute these stages in order. Do not skip ahead. After each stage, confirm the handoff file exists before starting the next.
 

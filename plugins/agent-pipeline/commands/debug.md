@@ -4,7 +4,7 @@ description: Diagnose and fix a failure with a disciplined reproduce -> localize
 
 Debug this failure: $ARGUMENTS
 
-**Model tier.** The debugger is Fable-eligible: if `AGENT_PIPELINE_FABLE` is `1`, delegate with `model: claude-fable-5` (root-causing is the hardest reasoning here); otherwise use its default Opus. See `MODEL-TIERS.md`.
+**Model tier (automatic — no setup).** The debugger auto-uses `claude-fable-5` when Fable is available (root-causing is the hardest reasoning here). Delegate with `model: claude-fable-5`; if that spawn **fails because Fable is unavailable or refused**, re-run it on its default Opus. (Optional escape hatch: `AGENT_PIPELINE_FABLE=0` forces Opus.) See `MODEL-TIERS.md`.
 
 Delegate to the **debugger** subagent. `$ARGUMENTS` is the symptom — an error
 message, a failing test name, a stack trace, or a plain-language description of

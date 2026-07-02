@@ -4,7 +4,7 @@ description: Measure-first performance audit — profile to find the real hot pa
 
 Performance audit: $ARGUMENTS
 
-**Model tier.** The perf-auditor is Fable-eligible: if `AGENT_PIPELINE_FABLE` is `1`, delegate with `model: claude-fable-5`; otherwise use its default Opus. See `MODEL-TIERS.md`.
+**Model tier (automatic — no setup).** The perf-auditor auto-uses `claude-fable-5` when Fable is available. Delegate with `model: claude-fable-5`; if that spawn **fails because Fable is unavailable or refused**, re-run it on its default Opus. (Optional escape hatch: `AGENT_PIPELINE_FABLE=0` forces Opus.) See `MODEL-TIERS.md`.
 
 Delegate to the **perf-auditor** subagent. Ask it to read the bundled
 `performance` skill, then work measure-first: **no number, no change.**
