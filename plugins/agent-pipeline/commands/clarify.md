@@ -4,6 +4,8 @@ description: Turn a rough idea into a precise, build-ready brief by interviewing
 
 Clarify this idea into a build-ready brief: $ARGUMENTS
 
+**Model tier (automatic — no setup).** The clarifier auto-uses `claude-fable-5` when Fable is available (better discovery-interview judgment; brief quality compounds into the plan). Delegate with `model: claude-fable-5`; if that spawn **fails because Fable is unavailable or refused**, re-run it on its default Opus. (Optional escape hatch: `AGENT_PIPELINE_FABLE=0` forces Opus.) See `MODEL-TIERS.md`.
+
 Delegate to the **clarifier** subagent. Ask it to read the bundled
 `spec-driven` skill, then run a **one-question-at-a-time** discovery interview
 with me — never a wall of questions — until it can describe the work at ~95%

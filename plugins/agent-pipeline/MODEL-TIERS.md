@@ -51,6 +51,9 @@ and long-horizon agentic work — where the capability gain justifies the premiu
 | `debugger` | Root-causing novel failures is the hardest reasoning, with no gate after it. |
 | `simplifier` | Behaviour-preservation proofs (Chesterton's Fence) are subtle and high-stakes. |
 | `perf-auditor` | Measure→diagnose→justify reasoning about why a hot path is hot. |
+| `scout` | Backlog ideation — the most capable model proposes less-generic, better-scoped candidates and is stronger at navigating ambiguity. |
+| `explainer` | Teaching quality — clearer mental models and better-chosen gotchas. Applies to the delegated modes (standalone `/explain`, and `/ship-overnight`'s Mode A/C files); the `/ship` Learn stage is orchestrator-driven and runs on the main-loop model. |
+| `clarifier` | Discovery-interview judgment — picking the next highest-value question and knowing when the brief is complete; brief quality compounds into the plan. |
 
 ## Pinned to Opus — do NOT run on Fable
 
@@ -61,17 +64,16 @@ and long-horizon agentic work — where the capability gain justifies the premiu
 ## Unchanged (frontmatter model stands)
 
 - `tester` → **Sonnet**. High-volume test generation, gated by the Opus `mutation-grader`. The tokens live here; keep them cheap. (`coder` is Sonnet by default too, but is Fable-eligible — see the table above.)
-- `cartographer`, `scout`, `explainer`, `clarifier`, `mutation-grader`, `storm-researcher` → **Opus**. Extraction, ideation, teaching, and interviewing — Fable's premium is not justified, and these run infrequently.
+- `cartographer`, `mutation-grader`, `storm-researcher` → **Opus**. Structured extraction (`REPO_CONTRACT.md`) and mutation-survivor interpretation (drives cosmic-ray — bounded, mechanical work where Fable mainly adds latency and can overthink) stay on Opus; `storm-researcher` lives in the storm-research plugin and is unchanged here.
 
 ## Summary
 
 ```
-Fable available (auto)  →  planner, coder, reviewer, debugger,
-                             simplifier, perf-auditor                              ⇒ claude-fable-5
+Fable available (auto)  →  planner, coder, reviewer, debugger, simplifier,
+                             perf-auditor, scout, explainer, clarifier            ⇒ claude-fable-5
                            security-auditor                                       ⇒ claude-opus-4-8 (pinned)
                            tester                                                 ⇒ sonnet
-                           cartographer, scout, explainer, clarifier,
-                             mutation-grader, storm-researcher                     ⇒ opus
+                           cartographer, mutation-grader, storm-researcher         ⇒ opus
 Fable unavailable       →  every agent uses its frontmatter model (coder/tester Sonnet, rest Opus)
   (auto-fallback)            — discovered from the first eligible delegation, no error
 Force default: AGENT_PIPELINE_FABLE=0 (optional; caps cost even when Fable is available)
