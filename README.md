@@ -124,6 +124,18 @@ live in the gitignored `.pipeline/` folder per run.
   symbol) for schemas, validators, utils, naming, errors, auth, tests, and the
   package policy. Run it once per repo and refresh it when the codebase drifts;
   the Planner reads it on every run. Read-only with respect to source code.
+- **`/setup-pipeline`** — one-time attended bootstrap for the GitHub-issues
+  backlog and domain-docs conventions. Installs the
+  [Matt Pocock engineering skills](https://github.com/mattpocock/skills) if
+  they're missing (following the upstream README at run time), verifies the
+  `gh` CLI is installed and authenticated, then has you run
+  `/setup-matt-pocock-skills` in the repo to generate `docs/agents/*`
+  (issue-tracker + triage-labels + domain conventions). Without those files
+  everything falls back to `FEATURES.md` and `gh` is never required. The
+  pipeline honors the conventions when present: the Planner, Reviewer,
+  Clarifier, and Debugger ground in `CONTEXT.md` (the domain glossary) and
+  `docs/adr/` (never silently overriding an accepted ADR), and issue-sourced
+  runs are gated against the originating issue's full text.
 - **`/ship <feature request>`** — the interactive pipeline. Cleans `.pipeline/`,
   then Map → Plan → Code → Test → Review → Explain. Shows you a plain-language
   recap of the plan, and stops for open questions or test failures. Never merges.
@@ -210,6 +222,7 @@ live in the gitignored `.pipeline/` folder per run.
 ```
 
 When installed as a plugin the commands are namespaced: `/agent-pipeline:map-repo`,
+`/agent-pipeline:setup-pipeline`,
 `/agent-pipeline:clarify`, `/agent-pipeline:ship`, `/agent-pipeline:ship-overnight`,
 `/agent-pipeline:debug`, `/agent-pipeline:security-review`,
 `/agent-pipeline:code-simplify`, `/agent-pipeline:perf`,
@@ -515,8 +528,8 @@ plugins/agent-pipeline/
   .claude-plugin/plugin.json        # plugin manifest (version lives here)
   agents/                           # cartographer, planner, coder, tester, reviewer, explainer, scout,
                                     #   mutation-grader, clarifier, debugger, security-auditor, simplifier, perf-auditor
-  commands/                         # map-repo, ship, ship-overnight, suggest-features, explain, grade-tests,
-                                    #   clarify, debug, security-review, code-simplify, perf
+  commands/                         # map-repo, setup-pipeline, ship, ship-overnight, suggest-features, explain,
+                                    #   grade-tests, clarify, debug, security-review, code-simplify, perf
   skills/                           # each standalone pipeline's process lives in a bundled skill
     mutation-grading/               # SKILL.md + reference.md + grade_tests.py (portable cosmic-ray driver)
     spec-driven/                    # /clarify — one-question discovery + brief template + definition of done

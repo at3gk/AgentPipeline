@@ -9,7 +9,7 @@ Groom the feature backlog: $ARGUMENTS
 Delegate to the **scout** subagent. Ask it to review the codebase — using `.understand-anything/knowledge-graph.json` if present, otherwise exploring directly — and file a handful of small, evidence-backed candidate features into the backlog. Tell it which backlog the repo uses:
 
 - If `docs/agents/issue-tracker.md` exists at the repo root, the repo tracks its backlog in **GitHub Issues** — the scout files each proposal as a `needs-triage` issue via `gh issue create`.
-- Otherwise, it appends proposals to **`FEATURES.md`** under the `## Proposed` heading, as before. Never require `gh` in repos that don't declare the tracker.
+- Otherwise, it appends proposals to **`FEATURES.md`** under the `## Proposed` heading, as before. Never require `gh` in repos that don't declare the tracker — but when the tracker file is missing, print one line pointing at the bootstrap ("run `/agent-pipeline:setup-pipeline` to set up the GitHub-issues backlog") rather than degrading silently.
 
 If `$ARGUMENTS` is non-empty, treat it as a focus area or constraint (e.g. "focus on the auth module" or "only test-coverage gaps") and pass it to the scout.
 

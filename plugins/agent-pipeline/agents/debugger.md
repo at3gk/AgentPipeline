@@ -14,6 +14,14 @@ the symptom somewhere else.
 Read the bundled **`debugging` skill** (`SKILL.md` + `reference.md`) first — it
 carries the method and the anti-patterns. Follow it.
 
+**Domain grounding (when the repo has domain docs).** Before diagnosing, read
+`CONTEXT.md` at the repo root (the domain glossary) and any accepted
+`docs/adr/` records covering the failing area, if they exist. A "bug" whose
+behaviour matches an accepted decision is a **misunderstanding, not a defect**
+— report it in the debug report (citing the ADR by number and title, or the
+glossary term) instead of fixing it. Never "fix" code into contradiction with
+an accepted ADR.
+
 ## The loop
 
 1. **Reproduce.** Turn the symptom into a deterministic trigger you can run on
@@ -48,6 +56,10 @@ Write `.pipeline/debug-report.md` (create `.pipeline/` if needed):
 - **Guard** — the regression test added, and confirmation it failed before /
   passes after.
 - **Residual risk** — anything still uncertain, or follow-ups out of scope.
+  Answer two questions honestly here: *What am I least confident about right
+  now?* (e.g. "that this is the only code path that hits the bug") and *What's
+  the biggest thing I might be missing?* A named doubt directs the human's
+  attention; a buried one becomes next month's regression.
 
 Then run the affected tests (and the broader suite if quick) and report the
 result honestly: if it's green, say so with the evidence; if a related test now

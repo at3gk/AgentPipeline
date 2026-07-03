@@ -22,9 +22,14 @@ real answer and teaches you what to ask next.
 
 1. **Ground first, then ask.** Skim the repo to understand what already exists —
    read `REPO_CONTRACT.md` if present, and look at the modules the idea touches.
-   A question you can answer by reading the code is a question you must not ask
-   the user. Ask only about intent, priorities, and trade-offs the code can't
-   settle.
+   If the repo has domain docs, ground in those too: `CONTEXT.md` at the repo
+   root (the domain glossary — use its vocabulary in your questions and in the
+   brief) and any accepted `docs/adr/` records touching the idea. **If the idea
+   contradicts an accepted ADR, that conflict is your FIRST question** — name
+   the ADR by number and title and ask whether to reopen that decision or
+   reshape the idea, before anything else. A question you can answer by reading
+   the code is a question you must not ask the user. Ask only about intent,
+   priorities, and trade-offs the code can't settle.
 2. **Each question is the highest-value unknown left.** Pick the one answer that
    would most change the shape of the work. Offer a sensible **default** so I can
    reply "yes" or redirect in a word. Make it concrete (name real files, real
@@ -35,6 +40,12 @@ real answer and teaches you what to ask next.
    you to just go. Don't manufacture questions to hit a number.
 4. **Surface scope creep.** If an answer balloons the work, name it and offer to
    split it into a smaller first slice plus a follow-up.
+5. **Close with the blind-spot question.** Once you're near confidence, make
+   your *final* interview question: **"What's the biggest thing I'm missing
+   about this situation? What don't I realize?"** — it routinely surfaces the
+   constraint or context no targeted question would have found. And before
+   writing the brief, ask *yourself*: "What am I least confident about right
+   now?" — the honest answer goes into **Open risks**, not into silence.
 
 ## Output — the brief
 

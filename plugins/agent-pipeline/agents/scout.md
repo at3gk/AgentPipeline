@@ -35,11 +35,28 @@ If you cannot point to a specific file or symbol as the reason for a suggestion,
 
 - Cap the run at **5–8** suggestions. Quality over quantity.
 - Each proposal is **one bounded, shippable, testable feature**, phrased the way a good `/ship-overnight` request is phrased (specific enough that the Planner could spec it without guessing).
+- If `CONTEXT.md` exists at the repo root (the domain glossary), phrase proposal titles and bodies in **its vocabulary, verbatim** — never drift to synonyms the glossary doesn't use.
 
-**Tracker declared** (`docs/agents/issue-tracker.md` exists) — file each proposal as a GitHub issue:
+**Tracker declared** (`docs/agents/issue-tracker.md` exists) — file each proposal as a GitHub issue, using the agent-ready body template (the same shape the Matt Pocock `/to-issues` skill produces), so promotion is just a label flip:
 
-- `gh issue create --title "<the feature, phrased as a good /ship-overnight request>" --label needs-triage --body "..."` — the body carries the one-line rationale, the size (`S|M|L`), and the files it touches (`touches: <path(s)>`).
-- If the `needs-triage` label does not exist yet, create it first (`gh label create needs-triage`).
+- `gh issue create --title "<the feature, phrased as a good /ship-overnight request>" --label needs-triage --label <category> --body "..."` with this body:
+
+  ```
+  ## What to build
+  <the end-to-end behavior — no file-path prescriptions>
+
+  why: <one-line rationale>; size: S|M|L; touches: <the evidence path(s)/symbol(s)>
+
+  ## Acceptance criteria
+  - [ ] <observable condition>
+  - [ ] <observable condition>
+
+  ## Blocked by
+  None - can start immediately
+  ```
+
+  (Under `## Blocked by`, list `#n — <what must land first>` instead when a real dependency exists.)
+- Labels: `needs-triage` plus one category label — `enhancement`, or `bug` for defect-shaped findings. If a label does not exist yet, create it first (`gh label create <name>`).
 - You must **never** apply `ready-for-agent` — promoting a proposal to approved work is the human's act, exactly like moving an item into "Ready to build".
 - Never duplicate an open or recently closed issue.
 
