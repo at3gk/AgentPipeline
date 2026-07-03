@@ -4,6 +4,8 @@ description: Run the full Map -> Plan -> Code -> Test -> Review -> Learn feature
 
 Run the full feature pipeline for: $ARGUMENTS
 
+**GitHub issue as the request.** If the request above references a GitHub issue — `#123`, a bare issue number, or an issue URL — fetch it with `gh issue view <n> --comments` and treat the full issue (title, body, and comments) as the feature request: pass that full text to the Planner, along with any documents the issue links (e.g. a PRD). When the pipeline finishes, remind me to comment on and close the issue after I've reviewed the branch — do **not** close it yourself. This is the attended flow: the human owns the issue lifecycle.
+
 First, clean up stale handoffs: delete any existing files in `.pipeline/` so no agent reads output from a previous run. Recreate the empty `.pipeline/` directory.
 
 **Model tier (automatic — no setup).** The **planner**, **coder**, and **reviewer** stages run on `claude-fable-5` when Fable is available and fall back to their defaults when it isn't. Detect availability from the first eligible delegation: spawn the **planner** with `model: claude-fable-5` (per-spawn override). If that spawn **fails because Fable is unavailable or refused** (not accessible to this org, or a zero-data-retention `400`), re-run the planner on its default model and use the defaults for the coder and reviewer too this run. If it **succeeds**, use `claude-fable-5` for the coder and reviewer as well. The **Tester stays Sonnet**; everything else stays Opus. (Optional escape hatch: `AGENT_PIPELINE_FABLE=0` forces the default tier even when Fable is available.) See `MODEL-TIERS.md`.

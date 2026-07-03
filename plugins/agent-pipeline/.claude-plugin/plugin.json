@@ -1,7 +1,7 @@
 {
   "name": "agent-pipeline",
   "description": "A suite of composable dev pipelines for Claude Code, built on a multi-agent feature pipeline (Map -> Plan -> Code -> Test -> Review -> Explain). Ships features locally or in scheduled cloud sessions, with tests, an auto-fix loop, a review verdict, and a learning walkthrough. Every handoff is a contract (repo, task, diff, evidence) with stop rules for high-risk actions, through a shared .pipeline/ folder. Adds standalone, individually-runnable lifecycle pipelines: /clarify (build-ready brief), /debug (reproduce->localize->reduce->fix->guard), /security-review (OWASP gate), /code-simplify (Chesterton's Fence), /perf (measure-first), and /grade-tests (mutation testing).",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "author": {
     "name": "AgentPipeline"
   },

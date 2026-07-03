@@ -11,8 +11,10 @@ You are running unattended (overnight, or in a scheduled cloud session). Make re
 ## 0. Pick the work and prepare
 
 1. **Determine the feature.**
-   - If `$ARGUMENTS` is non-empty, that is the feature.
-   - If it is empty, read `FEATURES.md` at the repo root and take the first unchecked item (`- [ ] ...`) under the `## Ready to build` heading (if that heading exists; otherwise the first unchecked item anywhere). That is the feature. **Never** pull from a `## Proposed` section — those are ungroomed candidates, not approved work. If there is no backlog file or no unchecked ready item, write a short note saying there was nothing to do and stop.
+   - If `$ARGUMENTS` references a GitHub issue (`#123`, a bare issue number, or an issue URL), fetch it with `gh issue view <n> --comments` and treat the full issue (title, body, and comments) as the feature request — pass that full text to the Planner, along with any documents the issue links (e.g. a PRD). **Remember the issue number**; you will update the issue at the end of the run.
+   - Otherwise, if `$ARGUMENTS` is non-empty, that is the feature.
+   - If it is empty **and** `docs/agents/issue-tracker.md` exists at the repo root (the repo tracks its backlog in GitHub Issues; labels are defined in `docs/agents/triage-labels.md`), pull from the tracker: run `gh issue list --label ready-for-agent --state open --json number,title,body,assignees,createdAt`, drop any issue that already has an assignee or an open blocker (an open issue referenced in a `Blocked by: #n` line in the body — check each referenced issue's state), and take the **oldest** remaining one. Claim it with `gh issue edit <n> --add-assignee @me`, then fetch its full text with `gh issue view <n> --comments`. That is the feature; remember the number. **Never** pull `needs-triage` or `needs-info` issues — those are ungroomed candidates, not approved work. If no issue qualifies, write a short note saying there was nothing to do and stop.
+   - If it is empty and there is no `docs/agents/issue-tracker.md`, read `FEATURES.md` at the repo root and take the first unchecked item (`- [ ] ...`) under the `## Ready to build` heading (if that heading exists; otherwise the first unchecked item anywhere). That is the feature. **Never** pull from a `## Proposed` section — those are ungroomed candidates, not approved work. If there is no backlog file or no unchecked ready item, write a short note saying there was nothing to do and stop.
 2. **Pre-flight.** Run `git status`. If the working tree is **not clean**, stop and report it — do not mix unrelated uncommitted changes into an autonomous run. (In a fresh cloud session the tree is always clean.) Never run on `main`/`master` as the working branch; you will create your own branch next.
 3. **Create the branch.** Make and switch to `claude/overnight-<slug>-<date>`, where `<slug>` is a short kebab-case summary of the feature and `<date>` is `YYYYMMDD`. The `claude/` prefix keeps it pushable under default cloud branch-push policies. Branch from the current HEAD.
 4. **Clean handoffs.** Delete any files in `.pipeline/` and recreate the empty directory.
@@ -49,14 +51,16 @@ Run this loop. Let `ROUND = 0` and `MAX_ROUNDS = 2`.
 1. **Optional security gate.** If the feature touched a security-sensitive surface (auth, input handling, data access, secrets, outbound requests), delegate to the **security-auditor** subagent to audit the branch diff; it writes `reports/security/REPORT.md` with a parseable `VERDICT`. If the verdict is `BLOCK`, treat it like a failed review: if rounds remain, feed the findings back to the Coder; otherwise go to step 5, Blocked. Fold the verdict into the morning report. (Skip this for changes with no security surface.)
 2. Delegate to the **explainer** subagent in pipeline mode (Mode A), pointed at `.pipeline/`. Wait for `.pipeline/explanation.md`.
 3. Write the morning report (see below) with status **SHIPPED**.
-4. If the feature came from `FEATURES.md`, check its box (`- [ ]` → `- [x]`).
+4. Close out the backlog entry:
+   - If the feature came from a **GitHub issue**, comment on it with the branch name and the morning-report headline (`gh issue comment <n> --body "..."`), then close it (`gh issue close <n>`). If the branch is later rejected in review, the issue gets reopened — closing here mirrors checking the box.
+   - If it came from **`FEATURES.md`**, check its box (`- [ ]` → `- [x]`).
 5. Final commit: `git add -A` then commit `feat(overnight): <feature>`.
 
 ## 5. Blocked (ran out of rounds)
 
 1. Delegate to the **explainer** subagent in blocker mode (Mode C). Wait for `.pipeline/explanation.md`.
 2. Write the morning report with status **BLOCKED — needs a human**, including the explainer's smallest-next-step.
-3. Do **not** check off the backlog item.
+3. Do **not** check off the backlog item. If the feature came from a **GitHub issue**, comment on it with the blocked headline and where it's stuck (`gh issue comment <n> --body "..."`), **remove the assignee** (`gh issue edit <n> --remove-assignee @me`), and leave the issue **open** — open and unassigned is the tracker equivalent of the unchecked box, so a future run (or a human) can pick it up.
 4. Final commit: `git add -A` then commit `wip(overnight): <feature> — blocked, see report`. The branch still gets pushed so I can pick up where it stopped.
 
 ## 6. Finish

@@ -37,7 +37,7 @@ number, a guard test, green tests.
 | **Review** | `/security-review` | Read-only OWASP gate over the branch diff | `reports/security/REPORT.md` (`VERDICT:`) |
 | | `/code-simplify` | Behaviour-preserving cleanup (Chesterton's Fence) | `.pipeline/simplification.md` |
 | | `/perf` | Measure-first optimization — no number, no change | `reports/perf/REPORT.md` |
-| **Groom** | `/suggest-features` | Proposes small, evidence-backed backlog candidates | `FEATURES.md` (`## Proposed`) |
+| **Groom** | `/suggest-features` | Proposes small, evidence-backed backlog candidates | `needs-triage` GitHub issues, or `FEATURES.md` (`## Proposed`) |
 | **Learn** | `/explain <target>` | Read-only teaching walkthrough of any file/module/feature | `.pipeline/explanation.md` |
 
 A natural chain: `/clarify` an idea → `/ship` it → `/security-review` the
@@ -127,18 +127,29 @@ live in the gitignored `.pipeline/` folder per run.
 - **`/ship <feature request>`** — the interactive pipeline. Cleans `.pipeline/`,
   then Map → Plan → Code → Test → Review → Explain. Shows you a plain-language
   recap of the plan, and stops for open questions or test failures. Never merges.
+  Accepts a GitHub issue reference (`#123` or an issue URL) as the request — it
+  builds from the full issue thread but leaves the issue open for you to close
+  after reviewing the branch.
 - **`/ship-overnight <feature request>`** — the autonomous pipeline. Creates its
   own branch, runs end to end without stopping, and includes a **bounded auto-fix
   loop**: if the Reviewer says NEEDS WORK or BLOCK, it feeds the feedback back to
   the Coder and retries (up to 2 rounds). If it still can't ship, the Explainer
   writes up exactly *why it's stuck* and the smallest next step. Either way it
   pushes the branch and leaves a committed morning report — **no PR, no merge**.
-  With no argument it pulls the next unchecked item from the `## Ready to build`
-  section of a `FEATURES.md` backlog.
+  Point it at a GitHub issue (`#123` or an issue URL) and it builds from the full
+  issue thread, comments the branch name back, and closes the issue on ship.
+  With no argument it pulls the next backlog item: in a repo that declares GitHub
+  Issues as its tracker (a `docs/agents/issue-tracker.md` file at the repo root),
+  that's the oldest open, unassigned `ready-for-agent` issue — claimed by
+  assignment, closed on ship, unassigned and left open when blocked; otherwise
+  it's the next unchecked item from the `## Ready to build` section of a
+  `FEATURES.md` backlog.
 - **`/suggest-features [focus]`** — have Opus (the **scout** agent) review the
   codebase and its knowledge graph and propose small, evidence-backed candidates
-  into the `## Proposed` section of `FEATURES.md`. It only proposes — you promote
-  the ones you want into `## Ready to build`. Great as a grooming pass before a
+  into the backlog: `needs-triage` GitHub issues when the repo declares the
+  tracker, otherwise the `## Proposed` section of `FEATURES.md`. It only
+  proposes — you promote the ones you want by labeling them `ready-for-agent`
+  (or moving them into `## Ready to build`). Great as a grooming pass before a
   night of `/ship-overnight` runs.
 - **`/explain <file | module | feature>`** — run just the Explainer on demand to
   learn any part of the codebase. With no argument, it explains your most recent
@@ -356,20 +367,24 @@ environment that fires on a trigger, with **no machine of yours involved**:
 2. Add a **SessionStart hook** to your project's `.claude/settings.json` so the
    fresh container has your test tooling — copy [`examples/claude-settings.json`](examples/claude-settings.json)
    and trim its command to your stack.
-3. Copy [`examples/FEATURES.md`](examples/FEATURES.md) to your repo root and fill in
-   the `## Ready to build` section. (Or run `/suggest-features` and promote the
-   candidates it proposes.)
+3. Set up the backlog. If the repo tracks work in **GitHub Issues** (it has a
+   `docs/agents/issue-tracker.md`), just label the approved issues
+   `ready-for-agent`. Otherwise copy [`examples/FEATURES.md`](examples/FEATURES.md)
+   to your repo root and fill in the `## Ready to build` section. (Either way,
+   `/suggest-features` can propose candidates for you to promote.)
 4. At [claude.ai/code/routines](https://claude.ai/code/routines), create a Routine
    on a **Schedule** trigger (e.g. daily at 2am) with the prompt `/ship-overnight`
-   (no argument). Each night it grabs the next item from `## Ready to build`, ships
-   it to a `claude/overnight-*` branch, checks the box, and pushes — ready for your
-   review with coffee. (Routines can also be triggered by GitHub events or an API call.)
+   (no argument). Each night it grabs the next backlog item — the oldest open,
+   unassigned `ready-for-agent` issue, or the next unchecked `## Ready to build`
+   item — ships it to a `claude/overnight-*` branch, closes it out (closes the
+   issue / checks the box), and pushes — ready for your review with coffee.
+   (Routines can also be triggered by GitHub events or an API call.)
 
 **Optional: let it refill its own backlog.** Add a second Routine on a slower
-schedule (say, weekly) running `/suggest-features`. It proposes candidates into
-`## Proposed` — it never ships them — so you skim the list and promote what you
-want. This keeps "decide what to build" a human-gated step while the nightly
-shipper handles "build it."
+schedule (say, weekly) running `/suggest-features`. It proposes candidates —
+`needs-triage` issues, or items under `## Proposed` — it never ships them — so
+you skim the list and promote what you want. This keeps "decide what to build"
+a human-gated step while the nightly shipper handles "build it."
 
 > Cloud containers are ephemeral and clone the repo fresh, so only committed
 > files travel — which is why the morning report is committed to `reports/` rather
@@ -519,7 +534,7 @@ plugins/storm-research/
   commands/                         # storm, research-feature  (save research/<slug>.md)
   agents/                           # storm-researcher (isolated full-method run)
 examples/
-  FEATURES.md                       # starter backlog (copy to your repo root)
+  FEATURES.md                       # starter backlog (copy to your repo root — fallback for repos not using GitHub Issues)
   REPO_CONTRACT.md                  # filled-in repo-contract template (generate yours with /map-repo)
   claude-settings.json              # SessionStart hook for cloud runs
 install.sh                          # vendor the files into any repo (option B)
