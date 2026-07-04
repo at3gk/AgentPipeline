@@ -152,8 +152,11 @@ live in the gitignored `.pipeline/` folder per run.
   issue thread, comments the branch name back, and closes the issue on ship.
   With no argument it pulls the next backlog item: in a repo that declares GitHub
   Issues as its tracker (a `docs/agents/issue-tracker.md` file at the repo root),
-  that's the oldest open, unassigned `ready-for-agent` issue — claimed by
-  assignment, closed on ship, unassigned and left open when blocked; otherwise
+  that's the next open, unassigned `ready-for-agent` issue — highest-priority-first
+  (`P1` > `P2` > `P3` > unlabeled, oldest-first ties) when the tracker defines
+  priority rules, oldest-first otherwise, restrictable with `milestone:"<name>"` —
+  claimed by assignment, closed on ship, unassigned and left open when blocked;
+  otherwise
   it's the next unchecked item from the `## Ready to build` section of a
   `FEATURES.md` backlog.
 - **`/suggest-features [focus]`** — have Opus (the **scout** agent) review the

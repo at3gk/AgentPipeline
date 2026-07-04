@@ -58,6 +58,8 @@ If you cannot point to a specific file or symbol as the reason for a suggestion,
   (Under `## Blocked by`, list `#n — <what must land first>` instead when a real dependency exists.)
 - Labels: `needs-triage` plus one category label — `enhancement`, or `bug` for defect-shaped findings. If a label does not exist yet, create it first (`gh label create <name>`).
 - You must **never** apply `ready-for-agent` — promoting a proposal to approved work is the human's act, exactly like moving an item into "Ready to build".
+- If `docs/agents/issue-tracker.md` defines **Priority** rules: never apply priority labels (`P1`–`P3`) either — priority is assigned at **promotion**, not proposal.
+- If it defines **Milestones**: assign a milestone (`gh issue create --milestone "<name>"`) only when the focus area you were given names an **existing** milestone (check with `gh api repos/<owner>/<repo>/milestones`); otherwise leave the proposal milestone-less. Never create a milestone yourself.
 - Never duplicate an open or recently closed issue.
 
 **No tracker** — append each to `FEATURES.md` under the `## Proposed (review, then move up to "Ready to build")` heading, in this form:

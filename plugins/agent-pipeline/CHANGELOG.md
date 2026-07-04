@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.9.0
+
+- **Milestone scoping + priority ordering** (gated on the "Milestones" /
+  "Priority" sections of `docs/agents/issue-tracker.md`).
+  - `/ship-overnight`'s backlog pull becomes highest-priority-first when the
+    tracker defines priority rules: `P1` > `P2` > `P3` > unlabeled, ties broken
+    oldest-first. A bare `milestone:"<name>"` argument restricts the pull to
+    that milestone (`gh issue list --milestone`).
+  - The scout never applies priority labels — `P1`–`P3` are assigned at
+    promotion, not proposal — and assigns a milestone only when the given
+    focus names an existing one (verified via
+    `gh api repos/<owner>/<repo>/milestones`), never creating milestones
+    itself.
+  - Commands that create issues as part of a defined effort assign the
+    effort's milestone at creation (`gh issue create --milestone`), creating
+    it first with `gh api repos/<owner>/<repo>/milestones -f title=...` when
+    needed (`gh` has no native milestone-create subcommand).
+
 ## 1.8.0
 
 - **Matt Pocock skills integration** ([mattpocock/skills](https://github.com/mattpocock/skills)).

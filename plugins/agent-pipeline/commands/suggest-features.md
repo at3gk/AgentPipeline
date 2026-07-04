@@ -13,4 +13,6 @@ Delegate to the **scout** subagent. Ask it to review the codebase — using `.un
 
 If `$ARGUMENTS` is non-empty, treat it as a focus area or constraint (e.g. "focus on the auth module" or "only test-coverage gaps") and pass it to the scout.
 
+**Milestones (only when `docs/agents/issue-tracker.md` defines a "Milestones" section).** Issues created as part of a defined effort are assigned to that effort's milestone **at creation** (`gh issue create --milestone "<name>"`). If the focus names an effort whose milestone doesn't exist yet, create it first — `gh api repos/<owner>/<repo>/milestones -f title="<name>"`, since `gh` has no native milestone-create subcommand — then pass the milestone name to the scout. The scout itself never creates milestones and only assigns one when the focus names an existing milestone; and priority labels (`P1`–`P3`) are never applied at proposal time — they're assigned at promotion.
+
 The scout only **proposes** — it must not write code, must not touch the `## Ready to build` section, and must never apply the `ready-for-agent` label. After it finishes, show me its proposals and the one it would pick first, so I can promote the ones I want — into "Ready to build", or by labeling the issue `ready-for-agent` — for `/ship-overnight`.
