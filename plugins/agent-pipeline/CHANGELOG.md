@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.10.0
+
+- **Merge-to-main flow** for `/ship` and `/ship-overnight`. Branches still
+  always wait for human review; only an explicit "merge to main" request
+  triggers the new sub-steps, which then need no separate confirmation:
+  - `/ship`: on a merge request, first refresh `REPO_CONTRACT.md` via
+    `/map-repo` (in repos that keep one) and commit the refresh on the
+    branch, run the full suite green, merge and push — and close the covered
+    GitHub issues via `gh` with a shipped comment (commit SHA, test result,
+    deploy action, remaining E2E watch items). Issue closure is now part of
+    the merge step instead of being left to the human; issues stay open
+    while the branch awaits review.
+  - `/ship-overnight`: documents the same merge flow for the later attended
+    session and notes it in the morning report's next-steps so the merging
+    session picks it up.
+
 ## 1.9.0
 
 - **Milestone scoping + priority ordering** (gated on the "Milestones" /
