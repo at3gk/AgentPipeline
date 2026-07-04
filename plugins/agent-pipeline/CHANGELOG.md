@@ -15,6 +15,11 @@
   - `/ship-overnight`: documents the same merge flow for the later attended
     session and notes it in the morning report's next-steps so the merging
     session picks it up.
+  - `/ship-overnight` no longer closes an issue-sourced issue at ship time:
+    it comments the branch name and headline but leaves the issue open and
+    keeps the assignment (which stops the next nightly run from re-pulling
+    it). Human review committing to the merge is the final say that closes
+    an issue — closure happens only in the merge-to-main flow.
 
 ## 1.9.0
 

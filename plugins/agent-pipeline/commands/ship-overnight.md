@@ -52,8 +52,8 @@ Run this loop. Let `ROUND = 0` and `MAX_ROUNDS = 2`.
 1. **Optional security gate.** If the feature touched a security-sensitive surface (auth, input handling, data access, secrets, outbound requests), delegate to the **security-auditor** subagent to audit the branch diff; it writes `reports/security/REPORT.md` with a parseable `VERDICT`. If the verdict is `BLOCK`, treat it like a failed review: if rounds remain, feed the findings back to the Coder; otherwise go to step 5, Blocked. Fold the verdict into the morning report. (Skip this for changes with no security surface.)
 2. Delegate to the **explainer** subagent in pipeline mode (Mode A), pointed at `.pipeline/`. Wait for `.pipeline/explanation.md`.
 3. Write the morning report (see below) with status **SHIPPED**.
-4. Close out the backlog entry:
-   - If the feature came from a **GitHub issue**, comment on it with the branch name and the morning-report headline (`gh issue comment <n> --body "..."`), then close it (`gh issue close <n>`). If the branch is later rejected in review, the issue gets reopened — closing here mirrors checking the box.
+4. Update the backlog entry:
+   - If the feature came from a **GitHub issue**, comment on it with the branch name and the morning-report headline (`gh issue comment <n> --body "..."`), but **leave it open and keep yourself assigned**. Human review committing to the merge is the final say that closes an issue: it gets closed during the merge-to-main flow (with a shipped comment), never here. The kept assignment is what stops the next nightly run from pulling the same issue again.
    - If it came from **`FEATURES.md`**, check its box (`- [ ]` → `- [x]`).
 5. Final commit: `git add -A` then commit `feat(overnight): <feature>`.
 

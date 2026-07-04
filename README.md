@@ -149,14 +149,15 @@ live in the gitignored `.pipeline/` folder per run.
   writes up exactly *why it's stuck* and the smallest next step. Either way it
   pushes the branch and leaves a committed morning report — **no PR, no merge**.
   Point it at a GitHub issue (`#123` or an issue URL) and it builds from the full
-  issue thread, comments the branch name back, and closes the issue on ship.
+  issue thread and comments the branch name back — the issue stays open until you
+  ask for the merge to main, which is what closes it.
   With no argument it pulls the next backlog item: in a repo that declares GitHub
   Issues as its tracker (a `docs/agents/issue-tracker.md` file at the repo root),
   that's the next open, unassigned `ready-for-agent` issue — highest-priority-first
   (`P1` > `P2` > `P3` > unlabeled, oldest-first ties) when the tracker defines
   priority rules, oldest-first otherwise, restrictable with `milestone:"<name>"` —
-  claimed by assignment, closed on ship, unassigned and left open when blocked;
-  otherwise
+  claimed by assignment, closed only at the human-approved merge to main,
+  unassigned and left open when blocked; otherwise
   it's the next unchecked item from the `## Ready to build` section of a
   `FEATURES.md` backlog.
 - **`/suggest-features [focus]`** — have Opus (the **scout** agent) review the
@@ -392,8 +393,9 @@ environment that fires on a trigger, with **no machine of yours involved**:
    on a **Schedule** trigger (e.g. daily at 2am) with the prompt `/ship-overnight`
    (no argument). Each night it grabs the next backlog item — the oldest open,
    unassigned `ready-for-agent` issue, or the next unchecked `## Ready to build`
-   item — ships it to a `claude/overnight-*` branch, closes it out (closes the
-   issue / checks the box), and pushes — ready for your review with coffee.
+   item — ships it to a `claude/overnight-*` branch, updates the backlog entry
+   (comments on the issue, which closes at your merge; or checks the box), and
+   pushes — ready for your review with coffee.
    (Routines can also be triggered by GitHub events or an API call.)
 
 **Optional: let it refill its own backlog.** Add a second Routine on a slower
