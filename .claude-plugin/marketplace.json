@@ -14,6 +14,11 @@
       "name": "storm-research",
       "source": "./plugins/storm-research",
       "description": "Stanford STORM research method: 5 expert perspectives -> contradiction map -> synthesis -> peer review. Turns any topic into a sourced, reliability-scored briefing. Includes /research-feature, a repo-grounded variant that feeds the agent-pipeline /ship workflow."
+    },
+    {
+      "name": "pocock-local",
+      "source": "./plugins/pocock-local",
+      "description": "Lean, CI-trusting companion to the Matt Pocock engineering skills in LOCAL-FILES mode. Mirrors the GitHub issues assigned to you into local markdown (read-only, snapshot + protected notes, worktree-safe), and runs a test-driven ship flow — scope with grilling, design failing tests, implement to green, confirm, open a PR — that leans on CI for the regression gate instead of re-implementing contracts, stop rules, or mutation grading. Routes stages to claude-fable-5 when available."
     }
   ]
 }

@@ -1,14 +1,18 @@
 # AgentPipeline
 
-A Claude Code plugin marketplace with two reusable plugins for
+A Claude Code plugin marketplace with three reusable plugins for
 [Claude Code](https://code.claude.com):
 
 - **[`agent-pipeline`](#the-pipeline)** — a multi-agent *development* pipeline
   (Plan → Code → Test → Review → Explain).
 - **[`storm-research`](#storm-research-plugin)** — the Stanford STORM *research*
   method: turn any topic into a sourced, reliability-scored briefing.
+- **[`pocock-local`](plugins/pocock-local/README.md)** — a lean, CI-trusting
+  companion to the [Matt Pocock skills](https://github.com/mattpocock/skills) in
+  LOCAL-FILES mode: mirrors your assigned GitHub issues into local markdown
+  (read-only) and runs a test-driven, PR-based ship flow.
 
-Both install from the same marketplace and work in every repo, locally and in the
+All install from the same marketplace and work in every repo, locally and in the
 cloud. The development pipeline is documented first; the research plugin follows.
 
 You type one command and a chain of specialist subagents takes a feature from

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Optional: keep your local issue mirror warm even when Claude Code is closed.
+
+  This launchd agent (macOS) runs the read-only sync every ~15 minutes so a
+  freshly assigned issue is already mirrored when you next open a session.
+  Opt-in — nothing loads this for you.
+
+  Fill in the CAPS placeholders, then:
+    cp issue-sync.launchd.plist ~/Library/LaunchAgents/com.pocock-local.issue-sync.plist
+    launchctl load ~/Library/LaunchAgents/com.pocock-local.issue-sync.plist
+    launchctl start com.pocock-local.issue-sync
+  Unload with:
+    launchctl unload ~/Library/LaunchAgents/com.pocock-local.issue-sync.plist
+
+  Notes:
+    - Use an ABSOLUTE POCOCK_ISSUE_DIR so every git worktree shares one mirror.
+    - launchd runs with your user permissions and a minimal PATH; point at the
+      full paths to `python3` and `gh`, and make sure `gh` is already authed.
+    - This is unsandboxed background execution; review it before loading.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.pocock-local.issue-sync</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/FULL/PATH/TO/python3</string>
+    <string>/FULL/PATH/TO/skills/issue-sync/sync_assigned_issues.py</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>POCOCK_ISSUE_REPO</key>
+    <string>ORG/REPO</string>
+    <key>POCOCK_ISSUE_DIR</key>
+    <string>/ABSOLUTE/PATH/TO/SHARED/MIRROR</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>StartInterval</key>
+  <integer>900</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/pocock-local-issue-sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/pocock-local-issue-sync.err</string>
+</dict>
+</plist>

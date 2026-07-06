@@ -1,0 +1,9 @@
+{
+  "name": "pocock-local",
+  "description": "A lean, CI-trusting companion to the Matt Pocock engineering skills in LOCAL-FILES mode. Mirrors the GitHub issues assigned to you into local markdown (read-only), and runs a test-driven ship flow — scope with grilling, plan, design failing tests, implement to green, confirm, open a PR — that leans on CI for the regression gate instead of re-implementing contracts, stop rules, or a mutation grader. Auto-routes stages to claude-fable-5 when available.",
+  "version": "0.1.0",
+  "author": {
+    "name": "AgentPipeline"
+  },
+  "keywords": ["matt-pocock", "local-files", "github-issues", "tdd", "test-driven", "worktrees", "ci", "issue-sync", "pipeline"]
+}

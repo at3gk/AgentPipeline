@@ -1,0 +1,16 @@
+{
+  "//": "Copy the SessionStart hook below into your PROJECT's .claude/settings.json (merge with any existing hooks). It mirrors the GitHub issues assigned to you into your local Pocock tracking area on every session start/resume, read-only. Its stdout ('N new issue(s) pulled…') lands in session context as a 'what's new' note. Set POCOCK_ISSUE_REPO=ORG/REPO (HOST/ORG/REPO for Enterprise) and POCOCK_ISSUE_DIR=<local dir> in your environment, or let the script read them from docs/agents/issue-tracker.md. Adjust the script path: use ${CLAUDE_PLUGIN_ROOT}/skills/issue-sync/... when installed as a plugin, or .claude/skills/issue-sync/... when vendored via install.sh. ENTERPRISE: 'allowManagedHooksOnly' may block this personal hook, and hooks run unsandboxed with your full permissions — review before enabling.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/skills/issue-sync/sync_assigned_issues.py\" 2>&1 || true"
+          }
+        ]
+      }
+    ]
+  }
+}
