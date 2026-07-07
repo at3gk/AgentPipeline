@@ -13,7 +13,8 @@ A Claude Code plugin marketplace with three reusable plugins for
   (read-only) and runs a test-driven, PR-based ship flow.
 
 All install from the same marketplace and work in every repo, locally and in the
-cloud. The development pipeline is documented first; the research plugin follows.
+cloud. The development pipeline is documented first; the research and
+`pocock-local` plugins follow.
 
 You type one command and a chain of specialist subagents takes a feature from
 request to reviewed, tested, and explained code — each one staying in a clean,
@@ -529,10 +530,48 @@ session of that repo.
 > `research/<slug>.md` is a normal committed file, which is what carries the
 > briefing out of an ephemeral cloud session — commit and push it to keep it.
 
+## pocock-local plugin
+
+The third plugin, **`pocock-local`**, is a lean, **CI-trusting** companion for
+teams who run the [Matt Pocock skills](https://github.com/mattpocock/skills) in
+**LOCAL-FILES mode**. Where `agent-pipeline` brings its own contracts, stop-rule
+gates, and mutation grading, `pocock-local` deliberately drops them — your repo
+already has CI/CD and a test suite — and keeps a tight test-driven loop instead.
+
+- **Read-only assigned-issue sync.** A separate agent (e.g. a Slack bot) assigns
+  you GitHub issues; `sync_assigned_issues.py` mirrors them into your local
+  tracking area as a machine-owned `snapshot.md` (refreshed each run) beside a
+  human-owned `notes.md` (created once, **never overwritten**). It only ever runs
+  `gh issue list` — never writes to GitHub. Config resolves from
+  `POCOCK_ISSUE_REPO`/`POCOCK_ISSUE_DIR`, then `docs/agents/issue-tracker.md`,
+  then a flagged fallback (the repo is never guessed). Worktree-safe: a relative
+  mirror is shared across linked `git worktree`s. Run it on a **SessionStart
+  hook** so your assigned work is mirrored the moment you open a session.
+- **`/pocock-local:ship-local`** — a test-driven flow: pick an assigned issue,
+  **scope it with Pocock `grilling`** (the synced issue is often thin), plan,
+  have the **`tdd-tester`** design failing tests (red), implement to green via
+  Pocock `implement`, confirm, then open a PR. **CI is the regression gate** and
+  the issue closes when the PR merges — and it respects *your* worktree/branch/PR
+  naming rather than imposing its own.
+- **`/pocock-local:setup-local`** — attended, one-time bootstrap that installs
+  the Pocock skills in local-files mode, verifies `gh`, and wires the sync hook.
+  It **flags** two enterprise realities rather than working around them:
+  `allowManagedHooksOnly` may block a personal hook, and hooks run **unsandboxed**.
+
+Full details, config, and the git-worktree behavior are in
+[`plugins/pocock-local/README.md`](plugins/pocock-local/README.md). Install it on
+its own:
+
+```bash
+/plugin marketplace add at3gk/agentpipeline
+/plugin install pocock-local@agent-pipeline-marketplace
+/reload-plugins
+```
+
 ## Repository layout
 
 ```
-.claude-plugin/marketplace.json     # marketplace catalog (both plugins)
+.claude-plugin/marketplace.json     # marketplace catalog (all three plugins)
 plugins/agent-pipeline/
   .claude-plugin/plugin.json        # plugin manifest (version lives here)
   agents/                           # cartographer, planner, coder, tester, reviewer, explainer, scout,
@@ -555,6 +594,12 @@ plugins/storm-research/
     reference.md                    # the four verbatim STORM prompts (source of truth)
   commands/                         # storm, research-feature  (save research/<slug>.md)
   agents/                           # storm-researcher (isolated full-method run)
+plugins/pocock-local/               # lean, CI-trusting Matt Pocock (local-files) companion — see its own README
+  .claude-plugin/plugin.json        # plugin manifest
+  commands/                         # setup-local, sync-issues, ship-local
+  agents/                           # tdd-tester (design-red / confirm-green)
+  skills/issue-sync/                # SKILL.md + sync_assigned_issues.py (read-only assigned-issue mirror)
+  examples/                         # claude-settings.json (sync hook), issue-sync.launchd.plist (opt-in timer)
 examples/
   FEATURES.md                       # starter backlog (copy to your repo root — fallback for repos not using GitHub Issues)
   REPO_CONTRACT.md                  # filled-in repo-contract template (generate yours with /map-repo)
