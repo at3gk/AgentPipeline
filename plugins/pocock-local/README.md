@@ -33,6 +33,13 @@ Matt Pocock skills are `disable-model-invocation: true` (user-typed only), so th
 plugin **composes around them** — it prompts you to run `grilling`, `implement`,
 and `/code-review`, and never calls them itself.
 
+The agent handoffs it *does* own — the acceptance criteria passed to the
+`tdd-tester`, and its red/green reports — follow a bundled **`context-economy`**
+skill (adapted from [Headroom](https://github.com/headroomlabs-ai/headroom)):
+lead with the result, point at `file:line` instead of re-printing code, and order
+content for prompt-cache hits, while never trimming the criteria→test mapping or
+the red/green evidence.
+
 ## The sync — `skills/issue-sync/`
 
 `sync_assigned_issues.py` (stdlib-only) runs `gh issue list --assignee @me` and

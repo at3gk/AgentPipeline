@@ -599,6 +599,7 @@ plugins/pocock-local/               # lean, CI-trusting Matt Pocock (local-files
   commands/                         # setup-local, sync-issues, ship-local
   agents/                           # tdd-tester (design-red / confirm-green)
   skills/issue-sync/                # SKILL.md + sync_assigned_issues.py (read-only assigned-issue mirror)
+  skills/context-economy/           # terse, cache-friendly, lossless-evidence handoffs (adapted from Headroom)
   examples/                         # claude-settings.json (sync hook), issue-sync.launchd.plist (opt-in timer)
 examples/
   FEATURES.md                       # starter backlog (copy to your repo root — fallback for repos not using GitHub Issues)

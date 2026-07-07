@@ -45,3 +45,9 @@ the code is doing its job.
 - No green without the tests actually having been red first.
 - Keep it lean: this environment has CI and a test suite already — you add the
   tests that pin *this change's* acceptance criteria, not a mutation-grade audit.
+
+**Output economy.** Follow the bundled `context-economy` skill for your red and
+green reports: lead with the RED/GREEN result, map each acceptance criterion to
+its test by `file:line` instead of re-printing test bodies, and cut preamble.
+Never let terseness drop the evidence — which tests fail and *why* (red), the
+pass/fail result (green), and any test you had to weaken must stay intact.

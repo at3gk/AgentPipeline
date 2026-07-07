@@ -14,6 +14,12 @@ it needs per `MODEL-TIERS.md` (guidance, not a mandate); otherwise use defaults.
 `POCOCK_FABLE=0` forces defaults. The Pocock `implement` / `code-review` skills
 are user-typed and run on the session model — this command composes around them.
 
+**Output economy.** Follow the bundled `context-economy` skill for every handoff
+(the plan + acceptance criteria you pass to the tdd-tester, the recap you give
+me): lead with the result, point at `file:line` instead of re-printing code, order
+stable content first — but never trim the acceptance criteria, the red/green
+evidence, or a surfaced risk.
+
 ## 0. Pick the work
 
 - If `$ARGUMENTS` names an issue (`#123`, a bare number) or a local mirror path,

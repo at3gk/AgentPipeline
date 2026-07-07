@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+- **Context-economy discipline** (`skills/context-economy/`, adapted from
+  [Headroom](https://github.com/headroomlabs-ai/headroom)) — the same
+  authoring-layer token discipline `agent-pipeline` uses, vendored self-contained
+  and reworded for this plugin's lean handoffs. The `tdd-tester` (red/green
+  reports) and `ship-local` (plan + acceptance-criteria handoff) now follow it:
+  lead with the result, point at `file:line` instead of re-printing code, order
+  stable-content-first for cache hits — never trimming the criteria→test mapping
+  or the red/green evidence.
+
 ## 0.1.0
 
 Initial release — a lean, CI-trusting companion to the Matt Pocock skills in
